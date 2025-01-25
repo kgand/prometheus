@@ -25,7 +25,12 @@ const USMap = () => {
                 key={geo.rsmKey}
                 geography={geo}
                 style={{
-                  default: { fill: "#d6d6d6", outline: "none", stroke: "#f1f1f1", strokeWidth: 0.5 },
+                  default: {
+                    fill: "#d6d6d6",
+                    outline: "none",
+                    stroke: "#f1f1f1",
+                    strokeWidth: 0.5,
+                  },
                   hover: { fill: "#d6d6d6", outline: "none" }, // Prevents color change on hover
                   pressed: { fill: "#D6D6D6", outline: "none" }, // Optional, style when clicked
                 }}
@@ -45,22 +50,25 @@ const Pin = ({ pin }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Marker
-      coordinates={pin.coordinates}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <circle r={8} fill="#6E1423" />
-      {isHovered && (
-        <text
-          textAnchor="middle"
-          y={15}
-          style={{ fontFamily: "system-ui", fill: "#5D5A6D", paddingTop: "8px" }}
-        >
-          {pin.name}
-        </text>
-      )}
-    </Marker>
+    <>
+      <Marker
+        coordinates={pin.coordinates}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="relative bg-red-800"
+      >
+        <circle r={6} fill="#6E1423" className="cursor-pointer"/>
+        {isHovered && (
+          <text
+            textAnchor="middle"
+            y={15}
+            style={{ fill: "#5D5A6D", paddingTop: "8px" }}
+          >
+            {pin.name}
+          </text>
+        )}
+      </Marker>
+    </>
   );
 };
 

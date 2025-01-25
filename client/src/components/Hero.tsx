@@ -5,7 +5,7 @@ export default function Hero() {
     <>
       <div className="relative z-10 min-h-screen px-10 pt-44 pb-20">
         <div className="mx-auto flex max-w-6xl flex-col items-center">
-          <h1 className="text-center text-[52px] leading-[1.15] font-semibold">
+          <h1 className="text-center text-[52px] leading-[1.15] font-medium">
             Unlock Realtime <span className="text-red-800">Wildfire</span>{" "}
             <br /> Detection with Prometheus
           </h1>

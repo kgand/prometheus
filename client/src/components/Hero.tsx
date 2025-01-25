@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export default function Hero() {
   return (
     <>
-      <div className="relative z-10 min-h-screen px-10 pt-40 pb-20">
+      <div className="relative z-10 min-h-screen px-10 pt-44 pb-20">
         <div className="mx-auto flex max-w-6xl flex-col items-center">
           <h1 className="text-center text-[52px] leading-[1.15] font-semibold">
             Unlock Realtime <span className="text-red-800">Wildfire</span>{" "}
@@ -15,7 +15,7 @@ export default function Hero() {
           </h2>
           <div className="flex gap-4 pt-6 text-sm">
             <Link
-              to={"/dashboard"}
+              to={"/dashboard/mapview"}
               className="rounded-md bg-red-800 px-6 py-2 text-white"
             >
               Try Prometheus {">"}
@@ -33,9 +33,9 @@ export default function Hero() {
           </div>
         </div>
       </div>
-      <Circle diameter={1000} fromTop={55} />
-      <Circle diameter={800} fromTop={55} />
-      <Circle diameter={1250} fromTop={55} />
+      <Circle diameter={1150} fromTop={45} />
+      <Circle diameter={900} fromTop={45} />
+      <Circle diameter={1450} fromTop={45} />
     </>
   );
 }
@@ -61,7 +61,7 @@ const Circle: React.FC<CircleProps> = ({ diameter, fromTop }) => {
       }}
       className="absolute z-0"
     >
-      <circle cx="300" cy="300" r="299.5" stroke="#efefef" />
+      <circle cx="300" cy="300" r="299.5" stroke="#f6f6f6" />
     </svg>
   );
 };

@@ -1,24 +1,30 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from 'react-router-dom';
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
+import { Outlet, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import DashboardSidebar from "./components/dashboard/DashboardSidebar";
+import MapView from "./pages/dashboard/Mapview";
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Home />,
-  },
-  {
-    path: '/dashboard',
-    element: <Dashboard />,
-  },
-]);
+const DashboardLayout = () => {
+  return (
+    <div className="flex">
+      <DashboardSidebar />
+      <div className="w-full">
+        <Outlet />
+      </div>
+    </div>
+  );
+};
 
 const App = () => {
   return (
-    <RouterProvider router={router} />
+    <Router>
+      <Routes>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<div />} />
+          <Route path="mapview" element={<MapView />} /> 
+        </Route>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </Router>
   );
 };
 

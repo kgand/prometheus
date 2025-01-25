@@ -21,7 +21,7 @@ export default function Nav() {
             </li>
           </ul>
         </div>      
-        <Link to={"/dashboard"} className="block rounded-md bg-red-800 px-8 py-2.5 text-white">
+        <Link to={"/dashboard/mapview"} className="block rounded-md bg-red-800 px-8 py-2.5 text-white">
          Try Prometheus {">"}</Link>
       </div>
     </div>

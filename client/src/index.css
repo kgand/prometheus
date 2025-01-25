@@ -14,10 +14,12 @@ body {
 
 .grad {
   position: relative;
-  background: linear-gradient(180deg, rgba(230, 230, 230, 0.80) 26.58%, rgba(230, 230, 230, 0.00) 100%);
+  background: linear-gradient(180deg, rgba(233, 233, 233, 0.80) 26.58%, rgba(233, 233, 233, 0.00) 100%);
   backdrop-filter: blur(10px);
 }
 
 .blob-blur {
   filter: blur(40px);
 }
+
+

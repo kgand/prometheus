@@ -88,5 +88,5 @@ else:
 
 
 def get_filtered_webcams_list():
-    print("Recieved and filtered webcams")
+    print("Received and filtered webcams")
     return filter_webcams(webcams_data["data"])

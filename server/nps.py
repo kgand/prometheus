@@ -21,7 +21,6 @@ class NpsClient:
     def get(self, url: str) -> httpx.Response:
         get_url = f"{self.NPS_BASE_URL}{url}?api_key={self.api_key}"
         headers = {"accept": "application/json"}
-
         return httpx.get(get_url, headers=headers)
 
 
@@ -82,7 +81,7 @@ webcams_response = nps.get("/webcams")
 webcams_data = None
 
 if webcams_response.status_code != 200:
-    raise Exception("failed to get the webcams")
+    raise Exception("Failed to fetch webcams data")
 else:
     webcams_data = webcams_response.json()
 

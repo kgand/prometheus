@@ -21,6 +21,7 @@ class NpsClient:
     def get(self, url: str) -> httpx.Response:
         get_url = f"{self.NPS_BASE_URL}{url}?api_key={self.api_key}"
         headers = {"accept": "application/json"}
+
         return httpx.get(get_url, headers=headers)
 
 
@@ -28,8 +29,8 @@ def filter_webcams(data: Any) -> Any:
     return list(
         filter(
             lambda w: w["url"].startswith("https://www.nps.gov/media/webcam/view.htm")
-            and w["latitude"]
-            and w["longitude"],
+            and w.get("latitude")
+            and w.get("longitude"),
             data,
         )
     )
@@ -81,7 +82,7 @@ webcams_response = nps.get("/webcams")
 webcams_data = None
 
 if webcams_response.status_code != 200:
-    raise Exception("Failed to fetch webcams data")
+    raise Exception("failed to get the webcams")
 else:
     webcams_data = webcams_response.json()
 

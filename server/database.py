@@ -1,6 +1,6 @@
 from connect import db
 from rich import print
-# from nps import get_filtered_webcams_list
+from nps import get_filtered_webcams_list
 
 # schema = {
 #     "$jsonSchema": {
@@ -24,6 +24,7 @@ def populate_database(webcams: list):
 
 
 # NOTE: this be it
+# ! IMPORTANT: DO NOT MODIFY UNLESS YOU HAVE TO
 # populate_database(get_filtered_webcams_list())
 # print(
 #     bson_dumps(

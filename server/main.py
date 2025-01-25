@@ -1,6 +1,7 @@
 from connect import db
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from owm import get_weather
 
 app = FastAPI()
 parkcams = db.parkcams
@@ -31,6 +32,19 @@ def read_allcams():
     except Exception as e:
         print(f"error: {e}")
         raise HTTPException(status_code=500, detail="failed to retrieve park cams")
+
+
+@app.get("/weather")
+def read_weather(lat: float, lon: float):
+    try:
+        print(f"Finding weather for {lat}, {lon}...")
+        weather = get_weather(lat, lon)
+        print(f"found weather for {lat}, {lon}...")
+
+        return weather
+    except Exception as e:
+        print(f"error: {e}")
+        raise HTTPException(status_code=500, detail="failed to retrieve weather")
 
 
 if __name__ == "__main__":

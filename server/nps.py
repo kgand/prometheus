@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from typing import Any
 from rich import print
+from utils.video_processing import process_base64_image
 
 load_dotenv()
 
@@ -44,13 +45,13 @@ def get_base64_of_webcam_image(url: str):
     response = httpx.get(url)
 
     if response.status_code != 200:
-        raise Exception(f"Couldn't get page: {response.status_code}")
+        raise Exception(f"couldn't get page: {response.status_code}")
 
     soup = BeautifulSoup(response.content, "html.parser")
 
     img_tag = soup.find("img", id="webcamRefreshImage")
     if not img_tag:
-        raise Exception("No image with id 'webcamRefreshImage' found.")
+        raise Exception("no image with id 'webcamRefreshImage' not found.")
 
     img_url = img_tag.get("src")
 
@@ -62,12 +63,11 @@ def get_base64_of_webcam_image(url: str):
     img_response = httpx.get(img_src)
 
     if img_response.status_code != 200:
-        raise Exception(f"Couldn't retrieve the image: {img_response.status_code}")
+        raise Exception(f"couldn't retrieve the image: {img_response.status_code}")
 
     img_base64 = image_bytes_to_base64(img_response.content)
     
     # Get detection results
-    from utils.video_processing import process_base64_image
     detection_result = process_base64_image(img_base64)
 
     return {
@@ -82,11 +82,11 @@ webcams_response = nps.get("/webcams")
 webcams_data = None
 
 if webcams_response.status_code != 200:
-    raise Exception("Failed to get the webcams")
+    raise Exception("failed to get the webcams")
 else:
     webcams_data = webcams_response.json()
 
 
 def get_filtered_webcams_list():
-    print("Received and filtered webcams")
+    print("Recieved and filtered webcams")
     return filter_webcams(webcams_data["data"])

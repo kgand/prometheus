@@ -1,50 +1,36 @@
-from bson.json_util import dumps as bson_dumps
-from pymongo import MongoClient
-from pymongo.collection import Collection
-from pymongo.errors import OperationFailure
-from dotenv import load_dotenv
-from rich import print
-from server.nps import get_filtered_webcams_list
-import os
+from connect import db
+from fastapi import FastAPI, HTTPException
 
-
-def get_database():
-    load_dotenv()
-
-    CONNECTION_STRING = os.environ.get("MONGODB_URI")
-
-    client = MongoClient(CONNECTION_STRING)
-    print("Connected to database")
-
-    return client["database"]
-
-
-# schema = {
-#     "$jsonSchema": {
-#         "bsonType": "object",
-#         "properties": {
-#             "lat": {"bsonType": "string"},
-#             "long": {"bsonType": "string"},
-#             "name": {"bsonType": "string"},
-#             "image": {"bsonType": "string"},
-#         },
-#     }
-# }
-
-
-db = get_database()
+app = FastAPI()
 parkcams = db.parkcams
 
 
-def populate_database(webcams: list):
-    for webcam in webcams:
-        parkcams.insert_one(webcam)
+def parse_document(doc):
+    if "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
 
 
-# NOTE: this be it
-# populate_database(get_filtered_webcams_list())
-# print(
-#     bson_dumps(
-#         parkcams.find_one({"id": "C734932D-DB0B-467A-82DB-6D6A3873BC6A"}), indent=4
-#     )
-# )
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/allcams")
+def read_allcams():
+    try:
+        print("Finding all cameras...")
+        all_documents = parkcams.find({})
+        all_parkcams = [parse_document(doc) for doc in all_documents]
+        print(f"found {len(all_parkcams)} cameras")
+
+        return all_parkcams
+    except Exception as e:
+        print(f"error: {e}")
+        raise HTTPException(status_code=500, detail="failed to retrieve park cams")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)

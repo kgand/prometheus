@@ -29,8 +29,8 @@ def filter_webcams(data: Any) -> Any:
     return list(
         filter(
             lambda w: w["url"].startswith("https://www.nps.gov/media/webcam/view.htm")
-            and w.get("latitude")
-            and w.get("longitude"),
+            and w["latitude"]
+            and w["longitude"],
             data,
         )
     )

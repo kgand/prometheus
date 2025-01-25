@@ -1,8 +1,11 @@
 from connect import db
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 parkcams = db.parkcams
+
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"])
 
 
 def parse_document(doc):

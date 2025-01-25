@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { FaCamera, FaGithub, FaHome, FaMapMarked, FaUser } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import { MdFireTruck, MdLogin, MdPark } from "react-icons/md";
-import { Link, Links } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { PiSirenFill } from "react-icons/pi";
 import { SiGoogledocs } from "react-icons/si";
 
@@ -13,7 +13,7 @@ export default function DashboardSidebar() {
   return (
     <>
       <motion.div
-        className={`custom-scrollbar h-screen max-h-screen overflow-y-auto bg-gray-100 ${isOpen ? "min-w-60" : "min-w-0"}`}
+        className={`custom-scrollbar h-screen max-h-screen overflow-y-auto bg-gray-100 ${isOpen ? "min-w-60" : "min-w-0"} sticky top-0`}
         animate={{ width: isOpen ? 240 : 0, opacity: isOpen ? 1 : 0}} // Animate width
         initial={{ width: 240, opacity: 0 }} // Initial width
         transition={{ duration: 0.2, ease: "easeInOut" }} // Smooth transition

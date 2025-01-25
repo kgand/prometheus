@@ -44,13 +44,13 @@ def get_base64_of_webcam_image(url: str):
     response = httpx.get(url)
 
     if response.status_code != 200:
-        raise Exception(f"couldn't get page: {response.status_code}")
+        raise Exception(f"Couldn't get page: {response.status_code}")
 
     soup = BeautifulSoup(response.content, "html.parser")
 
     img_tag = soup.find("img", id="webcamRefreshImage")
     if not img_tag:
-        raise Exception("no image with id 'webcamRefreshImage' not found.")
+        raise Exception("No image with id 'webcamRefreshImage' found.")
 
     img_url = img_tag.get("src")
 
@@ -62,7 +62,7 @@ def get_base64_of_webcam_image(url: str):
     img_response = httpx.get(img_src)
 
     if img_response.status_code != 200:
-        raise Exception(f"couldn't retrieve the image: {img_response.status_code}")
+        raise Exception(f"Couldn't retrieve the image: {img_response.status_code}")
 
     img_base64 = image_bytes_to_base64(img_response.content)
     
@@ -82,7 +82,7 @@ webcams_response = nps.get("/webcams")
 webcams_data = None
 
 if webcams_response.status_code != 200:
-    raise Exception("failed to get the webcams")
+    raise Exception("Failed to get the webcams")
 else:
     webcams_data = webcams_response.json()
 

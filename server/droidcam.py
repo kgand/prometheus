@@ -45,3 +45,26 @@ def preprocess_frame(frame):
     input_batch = input_tensor.unsqueeze(0)
     
     return input_batch
+
+def detect_fire(frame):
+    """Detect fire in the given frame."""
+    if model is None:
+        return False
+    
+    try:
+        with torch.no_grad():
+            input_batch = preprocess_frame(frame)
+            output = model(input_batch)
+            probabilities = torch.nn.functional.softmax(output[0], dim=0)
+            
+            # Get probability for fire class (assuming class 1 is fire)
+            fire_prob = probabilities[1].item()  # Index 1 for fire class
+            
+            # Only print and return True if fire probability is high enough
+            if fire_prob > 0.5:
+                print(f"Fire detected with confidence: {fire_prob:.2f}")
+                return True
+    except Exception as e:
+        print(f"Error in fire detection: {e}")
+    
+    return False

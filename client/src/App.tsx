@@ -4,6 +4,8 @@ import DashboardSidebar from "./components/dashboard/DashboardSidebar";
 import MapView from "./pages/dashboard/MapView";
 
 
+
+
 const DashboardLayout = () => {
   return (
     <div className="flex">
@@ -15,7 +17,8 @@ const DashboardLayout = () => {
   );
 };
 
-const App = () => {
+const App: React.FC = () => {
+  
   return (
     <Router>
       <Routes>

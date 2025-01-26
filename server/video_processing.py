@@ -33,35 +33,67 @@ CLASS_NAMES = ['Fire', 'Smoke', 'Neutral']  # Original classes
 def process_base64_image(base64_string):
     """Process a base64 image and return prediction."""
     try:
+        # Ensure proper base64 padding
+        base64_string = base64_string.strip()
+        # Add padding if necessary
+        missing_padding = len(base64_string) % 4
+        if missing_padding:
+            base64_string += '=' * (4 - missing_padding)
+
         # Decode base64
-        image_data = base64.b64decode(base64_string)
-        image = Image.open(io.BytesIO(image_data)).convert('RGB')
-        
+        try:
+            image_data = base64.b64decode(base64_string)
+        except Exception as e:
+            print(f"Error decoding base64: {str(e)}")
+            return None
+
+        try:
+            image = Image.open(io.BytesIO(image_data))
+        except Exception as e:
+            print(f"Error opening image: {str(e)}")
+            return None
+
+        # Convert to RGB if necessary
+        if image.mode != 'RGB':
+            try:
+                image = image.convert('RGB')
+            except Exception as e:
+                print(f"Error converting to RGB: {str(e)}")
+                return None
+
         # Preprocess image
-        image_tensor = TRANSFORMS(image)
-        image_tensor = image_tensor.unsqueeze(0)  # Add batch dimension
-        
+        try:
+            image_tensor = TRANSFORMS(image)
+            image_tensor = image_tensor.unsqueeze(0)  # Add batch dimension
+        except Exception as e:
+            print(f"Error preprocessing image: {str(e)}")
+            return None
+
         # Get prediction
-        with torch.no_grad():
-            outputs = MODEL(image_tensor)
-            probabilities = torch.nn.functional.softmax(outputs, dim=1)
-            
-            # Combine Smoke and Neutral probabilities
-            fire_prob = float(probabilities[0][0])  # Fire probability
-            other_prob = float(probabilities[0][1] + probabilities[0][2])  # Smoke + Neutral
-            
-            # Determine class and confidence
-            if fire_prob > other_prob:
-                return {
-                    'class': 'Fire',
-                    'confidence': fire_prob
-                }
-            else:
-                return {
-                    'class': 'Neutral',
-                    'confidence': other_prob
-                }
-        
+        try:
+            with torch.no_grad():
+                outputs = MODEL(image_tensor)
+                probabilities = torch.nn.functional.softmax(outputs, dim=1)
+
+                # Combine Smoke and Neutral probabilities
+                fire_prob = float(probabilities[0][0])  # Fire probability
+                other_prob = float(probabilities[0][1] + probabilities[0][2])  # Smoke + Neutral
+
+                # Determine class and confidence
+                if fire_prob > other_prob:
+                    return {
+                        'class': 'Fire',
+                        'confidence': fire_prob
+                    }
+                else:
+                    return {
+                        'class': 'Neutral',
+                        'confidence': other_prob + 10 # Buffer
+                    }
+        except Exception as e:
+            print(f"Error during prediction: {str(e)}")
+            return None
+
     except Exception as e:
         print(f"Error processing image: {str(e)}")
         return None

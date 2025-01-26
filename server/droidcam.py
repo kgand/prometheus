@@ -7,6 +7,8 @@ import numpy as np
 from torchvision import models
 from queue import Queue
 import time
+from datetime import datetime, timedelta
+from connect import db
 
 # Global variables
 video_capture = None
@@ -16,6 +18,9 @@ is_running = True
 frame_queue = Queue(maxsize=1)  # Only keep latest frame
 latest_detection = None
 detection_thread = None
+current_camera_id = None  # Store current camera ID
+last_fire_detection = None  # Track when fire was last detected
+recheck_interval = 60  # Seconds to wait before rechecking after fire detection
 
 def load_model():
     """Load the fire detection model."""
@@ -51,12 +56,55 @@ def preprocess_frame(frame):
     
     return input_batch
 
+def update_fire_status(camera_id, fire_detected):
+    """Update fire detection status in MongoDB."""
+    global last_fire_detection
+    try:
+        current_time = datetime.utcnow()
+        
+        # Update the document with just fire status
+        db.user_cctv.update_one(
+            {"_id": camera_id},
+            {
+                "$set": {
+                    "last_checked": current_time,
+                    "fire_detected": fire_detected,
+                    "last_alert": current_time if fire_detected else None
+                }
+            }
+        )
+        
+        # Update last fire detection time if fire is detected
+        if fire_detected:
+            last_fire_detection = current_time
+            print(f"Fire alert set! Will recheck in {recheck_interval} seconds")
+        else:
+            print("No fire detected, status reset to false")
+            
+    except Exception as e:
+        print(f"Error updating MongoDB: {e}")
+
+def should_check_for_fire():
+    """Determine if we should check for fire based on the detection cycle."""
+    global last_fire_detection
+    
+    # If we haven't detected fire yet, or if it's been more than recheck_interval since last detection
+    if last_fire_detection is None:
+        return True
+        
+    time_since_detection = (datetime.utcnow() - last_fire_detection).total_seconds()
+    return time_since_detection >= recheck_interval
+
 def detect_fire(frame):
     """Detect fire in the given frame."""
-    if model is None:
+    if model is None or current_camera_id is None:
         return False
     
     try:
+        # Check if we should perform detection based on the cycle
+        if not should_check_for_fire():
+            return latest_detection  # Return last detection result
+            
         with torch.no_grad():
             input_batch = preprocess_frame(frame)
             output = model(input_batch)
@@ -65,12 +113,15 @@ def detect_fire(frame):
             # Get probability for fire class (assuming class 1 is fire)
             fire_prob = probabilities[1].item()  # Index 1 for fire class
             
-            # Only print and return True if fire probability is high enough
-            if fire_prob > 0.5:
-                print(f"Fire detected with confidence: {fire_prob:.2f}")
-                return True
-            else:
-                print(f"No fire detected with confidence: {fire_prob:.2f}")
+            # Update MongoDB with detection results (just true/false)
+            fire_detected = fire_prob > 0.5
+            update_fire_status(current_camera_id, fire_detected)
+            
+            # Only print if fire is detected
+            if fire_detected:
+                print("Fire detected!")
+            return fire_detected
+            
     except Exception as e:
         print(f"Error in fire detection: {e}")
     
@@ -84,7 +135,8 @@ def detection_worker():
 
     while is_running:
         try:
-            if time.time() - last_detection_time < min_detection_interval:
+            current_time = time.time()
+            if current_time - last_detection_time < min_detection_interval:
                 time.sleep(0.01)  # Short sleep to prevent CPU overload
                 continue
 
@@ -94,18 +146,20 @@ def detection_worker():
                 
             frame_to_process = frame_queue.get_nowait()
             latest_detection = detect_fire(frame_to_process)
-            last_detection_time = time.time()
+            last_detection_time = current_time
             
         except Exception:
             continue
 
-def initialize_droidcam(video_url):
+def initialize_droidcam(video_url, camera_id):
     """Initialize DroidCam feed."""
-    global video_capture, detection_thread
+    global video_capture, detection_thread, current_camera_id
     try:
         video_capture = cv2.VideoCapture(video_url)
         if not video_capture.isOpened():
-            raise RuntimeError(f"Could not open DroidCam feed at {video_url}")
+            raise RuntimeError(f"Could not open camera feed at {video_url}")
+        
+        current_camera_id = camera_id
         
         # Set camera properties for better performance
         video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer size
@@ -122,7 +176,7 @@ def initialize_droidcam(video_url):
         threading.Thread(target=read_frames, daemon=True).start()
         return True
     except Exception as e:
-        print(f"Error initializing DroidCam: {e}")
+        print(f"Error initializing camera: {e}")
         return False
 
 def cleanup():

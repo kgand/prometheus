@@ -139,21 +139,4 @@ def process_all_cameras():
                 continue
                 
     except Exception as e:
-        logger.error(f"Error in process_all_cameras: {str(e)}")
-
-def main():
-    print("Starting fire monitoring service...")
-    
-    # Schedule the task to run every 5 minutes
-    schedule.every(5).minutes.do(process_all_cameras)
-    
-    # Run immediately on startup
-    process_all_cameras()
-    
-    # Keep the script running
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-if __name__ == "__main__":
-    main() 
+        logger.error(f"Error in process_all_cameras: {str(e)}") 

@@ -50,7 +50,7 @@ export default function MapOptions({
           Historical Fires:{" "}
           <span className="h-4 w-4 rounded-full bg-blue-500" />
         </div>
-        <p className="pt-2">Bigger circle = larger fire</p>
+        <p className="pt-2">Bigger Circle = Larger Fire</p>
       </div>
     </div>
   );

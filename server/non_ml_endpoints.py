@@ -1,7 +1,7 @@
 from connect import db, app
 from fastapi import HTTPException, Body
 from utils import parse_document
-from owm import get_weather
+from owm import get_weather, OPENWEATHERMAP_API_KEY
 from resources import get_emergency_places
 from wildfires import get_wildfire_incidents
 from webcams import get_camera_by_camera_id
@@ -45,14 +45,30 @@ def read_allcams():
 @app.get("/weather")
 def read_weather(lat: float, lon: float):
     try:
+        if not OPENWEATHERMAP_API_KEY:
+            raise HTTPException(
+                status_code=500,
+                detail="OpenWeatherMap API key not configured. Please add OPENWEATHERMAP_API_KEY to .env file"
+            )
+            
         print(f"Finding weather for {lat}, {lon}...")
         weather = get_weather(lat, lon)
-        print(f"found weather for {lat}, {lon}...")
-
+        if not weather:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to parse weather data from OpenWeatherMap API response"
+            )
+        print(f"Found weather data: {weather}")
         return weather
+    except HTTPException as he:
+        print(f"HTTP Exception in weather endpoint: {he.detail}")
+        raise he
     except Exception as e:
-        print(f"error: {e}")
-        raise HTTPException(status_code=500, detail="failed to retrieve weather")
+        print(f"Unexpected error in weather endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve weather data: {str(e)}"
+        )
 
 
 @app.get("/wildfires")

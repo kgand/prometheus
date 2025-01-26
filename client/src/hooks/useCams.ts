@@ -1,34 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import CamData from "../types/Cam";
 
-// Types
-interface RelatedPark {
-  states: string;
-  parkCode: string;
-  designation: string;
-  fullName: string;
-  url: string;
-  name: string;
-}
-
-interface CamData {
-  _id: string;
-  id: string;
-  url: string;
-  title: string;
-  description: string;
-  images: string[];
-  relatedParks: RelatedPark[];
-  status: string;
-  statusMessage: string;
-  isStreaming: boolean;
-  tags: string[];
-  latitude: number;
-  longitude: number;
-  geometryPoiId: string;
-  credit: string;
-  confidence: number
-}
 
 export const useCams = () => {
   const [data, setData] = useState<CamData[]>([]);

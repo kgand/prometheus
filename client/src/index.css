@@ -26,6 +26,8 @@ body {
   font-size: calc(24px/var(--zoom)) !important;
 }
 
-.test {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.2) 8.22%, rgba(255, 255, 255, 0.00) 95.04%, rgba(255, 255, 255, 0.80) 174.64%)
+.modal-bg {
+  background-color: #2020205a;
+  backdrop-filter: blur(10px);
 }
+

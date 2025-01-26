@@ -2,14 +2,21 @@
 import { useState } from "react";
 import { Marker } from "react-simple-maps";
 
-const Pin = ({ pin }) => {
+const Pin = ({ pin, setSelectedCam, setShowCamModal }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  const handleClick = () => {
+    setShowCamModal(true)
+    setSelectedCam(pin)
+  }
+
   return (
+   <>
     <Marker
       coordinates={pin.coordinates}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
       className="relative"
     >
       {pin.confidence < 34 && (
@@ -27,6 +34,7 @@ const Pin = ({ pin }) => {
         </text>
       )}
     </Marker>
+   </>
   );
 };
 

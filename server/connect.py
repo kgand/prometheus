@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from rich import print
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 
@@ -24,4 +25,18 @@ def get_database():
     return db
 
 
+def get_fastapi():
+    app = FastAPI()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    return app
+
+
 db = get_database()
+app = get_fastapi()

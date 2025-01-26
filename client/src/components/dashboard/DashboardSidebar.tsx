@@ -1,4 +1,4 @@
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaCamera,
@@ -19,7 +19,9 @@ export default function DashboardSidebar() {
 
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
 
-
+  useEffect(() => {
+    console.log(user)
+  },[user])
   return (
     <>
       <motion.div

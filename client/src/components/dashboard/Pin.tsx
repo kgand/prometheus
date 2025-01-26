@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Marker } from "react-simple-maps";
 import { useFireStatus } from "../../services/websocket/client";
+import { motion } from "framer-motion";
 
 const Pin = ({ pin, setSelectedCam, setShowCamModal }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -22,28 +23,36 @@ const Pin = ({ pin, setSelectedCam, setShowCamModal }) => {
   };
 
   const handleClick = () => {
-    setShowCamModal(true)
-    setSelectedCam(pin)
-  }
+    setShowCamModal(true);
+    setSelectedCam(pin);
+  };
 
   return (
-   <>
-    <Marker
-      coordinates={pin.coordinates}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
-      className="relative"
-    >
-      <circle r={4} fill={getPinColor()} className="cursor-pointer" />
-      {isHovered && (
-        <text x={5} y={-10} className="txt">
-          {pin.name}
-          {fireStatus?.fireDetected && " (🔥 Fire Detected!)"}
-        </text>
-      )}
-    </Marker>
-   </>
+    <>
+      <Marker
+        coordinates={pin.coordinates}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={handleClick}
+        className="relative"
+      >
+        <circle r={4} fill={getPinColor()} className="cursor-pointer" />
+        {isHovered && (
+          <motion.text
+            x={5}
+            y={-10}
+            className="txt"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {pin.name}
+            {fireStatus?.fireDetected && " (🔥 Fire Detected!)"}
+          </motion.text>
+        )}
+      </Marker>
+    </>
   );
 };
 

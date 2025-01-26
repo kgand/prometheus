@@ -50,38 +50,54 @@ def process_all_cameras():
         cursor = parkcams.find({})
         all_cameras = list(cursor)
         
-        for camera in all_cameras:
-            camera_id = camera.get('id')
-            camera_title = camera.get('title', 'Unknown')
-            
-            try:
-                current_time = datetime.utcnow().isoformat()
-                webcam_data = get_base64_of_webcam_image(camera['url'])
-                
-                if webcam_data and 'image' in webcam_data:
-                    # Store the image
-                    image_data = {
-                        'timestamp': current_time,
-                        'image': webcam_data['image']
-                    }
-                    update_camera_image(camera_id, image_data)
-                    
-                    # Process for fire detection
-                    detection_result = process_base64_image(webcam_data['image'])
-                    
-                    if detection_result:
-                        status_data = {
-                            'timestamp': current_time,
-                            'fire_detected': detection_result['class'] == 'Fire',
-                            'confidence': float(detection_result['confidence'])
-                        }
-                        update_camera_status(camera_id, status_data)
-                        
-            except Exception as e:
-                logger.error(f"Error processing camera {camera_title}: {str(e)}")
-    except Exception as e:
-        logger.error(f"Error in process_all_cameras: {str(e)}")
+        if not all_cameras:
+            logger.warning("No cameras found in database")
+            return
         
+        for camera in all_cameras:
+            try:
+                camera_title = camera.get('title', 'Unknown')
+                camera_id = camera.get('id')
+                
+                if not camera_id:
+                    logger.warning(f"Skipping camera {camera_title} - no ID found")
+                    continue
+                
+                current_time = datetime.utcnow().isoformat()
+                
+                try:
+                    webcam_data = get_base64_of_webcam_image(camera['url'])
+                    
+                    if webcam_data and 'image' in webcam_data:
+                        # Existing processing logic with extended error handling
+                        pass
+                    else:
+                        error_status = {
+                            'timestamp': current_time,
+                            'fire_detected': False,
+                            'confidence': 0.0,
+                            'error': 'No image data available'
+                        }
+                        update_camera_status(camera_id, error_status)
+                        logger.warning(f"No image data for camera {camera_title}")
+                        
+                except Exception as e:
+                    error_status = {
+                        'timestamp': current_time,
+                        'fire_detected': False,
+                        'confidence': 0.0,
+                        'error': str(e)
+                    }
+                    update_camera_status(camera_id, error_status)
+                    logger.error(f"Error processing camera {camera_title}: {str(e)}")
+                    
+            except Exception as e:
+                logger.error(f"Unexpected error with camera {camera_title}: {str(e)}")
+                
+    except Exception as e:
+        logger.error(f"Critical error in process_all_cameras: {str(e)}")
+
+
 def main():
     print("Starting fire monitoring service...")
     

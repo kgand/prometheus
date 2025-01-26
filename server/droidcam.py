@@ -68,3 +68,47 @@ def detect_fire(frame):
         print(f"Error in fire detection: {e}")
     
     return False
+
+def initialize_droidcam(video_url):
+    """Initialize DroidCam feed."""
+    global video_capture
+    try:
+        video_capture = cv2.VideoCapture(video_url)
+        if not video_capture.isOpened():
+            raise RuntimeError(f"Could not open DroidCam feed at {video_url}")
+        
+        # Load the fire detection model
+        if not load_model():
+            raise RuntimeError("Failed to load fire detection model")
+        
+        # Start frame reading thread
+        threading.Thread(target=read_frames, daemon=True).start()
+        return True
+    except Exception as e:
+        print(f"Error initializing DroidCam: {e}")
+        return False
+
+def cleanup():
+    """Cleanup resources."""
+    global is_running, video_capture
+    is_running = False
+    if video_capture:
+        video_capture.release()
+
+def read_frames():
+    """Continuously read and process frames from the DroidCam feed."""
+    global frame, is_running
+    while is_running:
+        if video_capture and video_capture.isOpened():
+            ret, current_frame = video_capture.read()
+            if ret:
+                frame = current_frame
+                detect_fire(frame)
+            else:
+                break
+        else:
+            break
+
+def get_frame():
+    """Get the current frame."""
+    return frame

@@ -9,9 +9,9 @@ export default function Nav() {
           <div className="flex items-center gap-2.5 text-2xl font-medium">
             <MdFireTruck className="text-red-800" /> <span>Prometheus</span>
           </div>
-          <ul className="flex gap-6 pb-0.5">
+          <ul className="flex gap-4 pb-0.5">
             <li>
-              <a href="">Cams</a>
+              <a href="" className="py-2 px-2">Cams</a>
             </li>
             <li>
               <a href="">Alerts</a>

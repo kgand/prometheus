@@ -27,6 +27,7 @@ interface CamData {
   longitude: number;
   geometryPoiId: string;
   credit: string;
+  confidence: number
 }
 
 export const useCams = () => {

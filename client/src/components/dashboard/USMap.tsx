@@ -15,8 +15,6 @@ const USA_TOPO_JSON = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 const USMap = () => {
   const { data, loading, isError, error } = useCams();
 
-  console.log(data[56])
-
   if (loading) return (
     <div className="pt-20 flex justify-center">
       <span className="animate-spin text-3xl"><FaSpinner/></span>

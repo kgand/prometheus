@@ -94,7 +94,7 @@ export default function DashboardSidebar() {
                     className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
                     onClick={() => loginWithRedirect()}
                   >
-                    <MdLogin /> Sign In
+                    <img src="/prometheus.png" alt="Prometheus Logo" className="w-5 h-5 object-contain" /> Sign In
                   </li>
                 ) : (
                   <li
@@ -105,11 +105,11 @@ export default function DashboardSidebar() {
                       })
                     }
                   >
-                    <MdLogin /> Sign Out
+                    <img src="/prometheus.png" alt="Prometheus Logo" className="w-5 h-5 object-contain" /> Sign Out
                   </li>
                 )}
                 <li className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200">
-                  <FaUser /> Accout Details
+                  <FaUser /> Account Details
                 </li>
               </ul>
             </div>

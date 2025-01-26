@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className='border-t border-[#f5f5f5] py-20 bg-white relative z-10'>
          <div className="flex flex-col-reverse items-center lg:justify-center lg:flex-row">
         <div className="flex flex-col items-center  border-r-none border-[#f5f5f5] mt-12 lg:max-w-[320px] lg:border-r lg:mt-0 lg:items-start lg:pr-16">
-          <p className="text-xl flex font-medium items-center gap-0.5">
+          <p className="text-xl flex font-medium items-center gap-3">
             <img src="/prometheus.png" alt="Prometheus Logo" className="w-12 h-12 object-contain" />
             <span className="text-gray-800">Prometheus</span>
           </p>

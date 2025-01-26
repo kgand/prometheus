@@ -35,7 +35,7 @@ export default function DashboardSidebar() {
             <div className="border-b border-gray-300 px-6 pb-3">
               <p className="flex items-center overflow-x-hidden text-xl font-semibold whitespace-nowrap">
                 <img src="/prometheus.png" alt="Prometheus Logo" className="w-10 h-10 object-contain" />
-                <span className="pl-0.5 text-gray-800">Prometheus</span>
+                <span className="pl-3 text-gray-800">Prometheus</span>
               </p>
               <div className="flex items-center justify-between pt-6">
                 <p className="font-medium">Dashboard</p>

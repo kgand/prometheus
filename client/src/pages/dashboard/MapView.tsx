@@ -12,7 +12,8 @@ export default function MapView() {
         <p className="flex items-center gap-2.5"><span className="bg-yellow-400 rounded-full w-4 h-4"/> 34-66</p>
         <p className="flex items-center gap-2.5"><span className="bg-red-800 rounded-full w-4 h-4"/> 67-100</p>
       </div>
-      <div className="flex h-full w-full items-center justify-center pt-8">
+      <p className="text-center text-sm pt-4">Click a pin for more information.</p>
+      <div className="flex h-full w-full items-center justify-center pt-2">
         <USMap />
       </div>
     </div>

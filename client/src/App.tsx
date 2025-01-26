@@ -1,7 +1,10 @@
 import { Outlet, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import DashboardSidebar from "./components/dashboard/DashboardSidebar";
-import MapView from "./pages/dashboard/Mapview";
+import MapView from "./pages/dashboard/MapView";
+
+
+
 
 const DashboardLayout = () => {
   return (
@@ -14,7 +17,8 @@ const DashboardLayout = () => {
   );
 };
 
-const App = () => {
+const App: React.FC = () => {
+  
   return (
     <Router>
       <Routes>

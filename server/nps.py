@@ -19,7 +19,7 @@ class NpsClient:
         self.api_key = api_key
 
     def get(self, url: str) -> httpx.Response:
-        get_url = f"{self.NPS_BASE_URL}{url}?api_key={self.api_key}"
+        get_url = f"{self.NPS_BASE_URL}{url}?limit=999999&api_key={self.api_key}"
         headers = {"accept": "application/json"}
 
         return httpx.get(get_url, headers=headers)

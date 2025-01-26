@@ -5,6 +5,7 @@ from owm import get_weather
 from resources import get_emergency_places
 from wildfires import get_wildfire_incidents
 from webcams import get_camera_by_camera_id
+from usercams import add_new_usercam
 
 parkcams = db.parkcams
 
@@ -80,3 +81,20 @@ def read_camera(id: str):
     except Exception as e:
         print(f"error: {e}")
         raise HTTPException(status_code=500, detail="failed to retrieve camera")
+
+
+@app.post("/addusercam")
+def add_usercam(
+    name: str,
+    ip_address: str,
+    user_id: str,
+    latitude: float,
+    longitude: float,
+):
+    try:
+        print("Adding usercam...")
+        add_new_usercam(name, ip_address, user_id, latitude, longitude)
+        print("added usercam")
+    except Exception as e:
+        print(f"error: {e}")
+        raise HTTPException(status_code=500, detail="failed to add usercam")

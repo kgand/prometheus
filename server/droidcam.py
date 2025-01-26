@@ -12,6 +12,7 @@ from connect import db
 import asyncio
 from ws_manager import manager
 from twilio_manager import make_emergency_call
+import os
 
 # Global variables
 cameras = {}  # Store multiple camera instances
@@ -114,14 +115,24 @@ class DroidCamera:
                     self.last_fire_detection = current_time
                     print(f"Fire alert for camera {self.camera_id}! Will recheck in {self.recheck_interval} seconds")
                     
-                    # Make emergency call if phone number is available
-                    if camera_data.get("phone_number"):
-                        make_emergency_call(
-                            camera_data["phone_number"],
-                            camera_data.get("name", "Unknown Camera"),
-                            camera_data.get("latitude", 0),
-                            camera_data.get("longitude", 0)
-                        )
+                    # Make emergency call if camera data exists
+                    if camera_data:
+                        try:
+                            # Get emergency phone from .env
+                            emergency_phone = os.getenv("EMERGENCY_PHONE_NUMBER")
+                            if emergency_phone:
+                                print(f"Making emergency call to {emergency_phone}")
+                                make_emergency_call(
+                                    emergency_phone,
+                                    camera_data.get("name", "Unknown Camera"),
+                                    camera_data.get("latitude", 0),
+                                    camera_data.get("longitude", 0)
+                                )
+                                print(f"Emergency call completed for camera {self.camera_id}")
+                            else:
+                                print("No emergency phone number found in .env")
+                        except Exception as e:
+                            print(f"Failed to make emergency call: {e}")
             
         except Exception as e:
             print(f"Error updating fire status: {e}")
@@ -155,6 +166,31 @@ class DroidCamera:
                     
                 frame_to_process = self.frame_queue.get_nowait()
                 fire_detected, confidence = detect_fire(frame_to_process)
+                
+                # Get camera data for emergency call
+                camera_data = db.user_cctv.find_one({"_id": self.camera_id})
+                
+                if fire_detected:
+                    print(f"Fire alert for camera {self.camera_id}! Will recheck in {self.recheck_interval} seconds")
+                    
+                    # Make emergency call if camera data exists
+                    if camera_data:
+                        try:
+                            # Get emergency phone from .env
+                            emergency_phone = os.getenv("EMERGENCY_PHONE_NUMBER")
+                            if emergency_phone:
+                                print(f"Making emergency call to {emergency_phone}")
+                                make_emergency_call(
+                                    emergency_phone,
+                                    camera_data.get("name", "Unknown Camera"),
+                                    camera_data.get("latitude", 0),
+                                    camera_data.get("longitude", 0)
+                                )
+                                print(f"Emergency call completed for camera {self.camera_id}")
+                            else:
+                                print("No emergency phone number found in .env")
+                        except Exception as e:
+                            print(f"Failed to make emergency call: {e}")
                 
                 # Use asyncio to run the coroutine
                 loop = asyncio.new_event_loop()

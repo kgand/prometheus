@@ -101,17 +101,13 @@ async def startup_event():
             logging.error("Failed to initialize DroidCam")
         
         # Start the fire monitoring service in the background
-        # Ensure we're in the same event loop as FastAPI
-        asyncio.create_task(start_monitoring_wrapper())
+        logging.info("Starting fire monitoring service...")
+        start_fire_monitoring()
+        logging.info("Fire monitoring service started successfully")
+        
     except Exception as e:
         logging.error(f"Error in startup: {e}")
-
-async def start_monitoring_wrapper():
-    """Wrapper to start fire monitoring in FastAPI's event loop."""
-    try:
-        start_fire_monitoring()
-    except Exception as e:
-        logging.error(f"Error starting fire monitoring: {e}")
+        raise  # Re-raise the exception to ensure FastAPI knows about the startup failure
 
 
 @app.on_event("shutdown")

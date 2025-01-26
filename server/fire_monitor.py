@@ -17,9 +17,16 @@ from droidcam import cameras  # Import the cameras dict from droidcam
 
 # Load environment variables
 load_dotenv()
-EMERGENCY_PHONE = os.getenv("EMERGENCY_PHONE")
-
+EMERGENCY_PHONE = os.getenv("EMERGENCY_PHONE_NUMBER")  # Fix environment variable name
 logger = logging.getLogger(__name__)
+
+# Log Twilio configuration
+logger.info("Twilio Configuration:")
+logger.info(f"Emergency Phone Number configured: {'Yes' if EMERGENCY_PHONE else 'No'}")
+logger.info(f"Emergency Phone Number: {EMERGENCY_PHONE if EMERGENCY_PHONE else 'Not Set'}")
+
+if not EMERGENCY_PHONE:
+    logger.error("EMERGENCY_PHONE_NUMBER not found in .env file!")
 
 parkcams = db.parkcams
 fire_detections = db.fire_detections
@@ -27,7 +34,7 @@ user_cctv = db.user_cctv
 
 # Dictionary to track last fire alerts for each camera
 last_fire_alerts = {}
-RECHECK_INTERVAL = 300  # 5 minutes in seconds
+RECHECK_INTERVAL = 60  # 60 seconds
 
 def update_camera_image(camera_id, image_data):
     """Update the image in fire_detections collection."""
@@ -103,19 +110,41 @@ async def update_camera_status(camera_id, detection_data):
                 try:
                     logger.info(f"Attempting emergency call for camera {camera_id}")
                     if EMERGENCY_PHONE:
-                        logger.info(f"Making emergency call to emergency number from .env")
-                        make_emergency_call(
+                        logger.info(f"Making emergency call to {EMERGENCY_PHONE}")
+                        camera_name = camera_data.get("name", "Unknown Camera")
+                        latitude = camera_data.get("latitude", 0)
+                        longitude = camera_data.get("longitude", 0)
+                        
+                        # Log the TTS message that will be sent
+                        tts_message = f"Alert! Fire detected at {camera_name}. "
+                        if latitude != 0 and longitude != 0:
+                            tts_message += f"Location coordinates: {latitude}, {longitude}. "
+                        tts_message += "Please take immediate action."
+                        logger.info(f"TTS Message to be sent: {tts_message}")
+                        
+                        # Make the call
+                        call_result = make_emergency_call(
                             EMERGENCY_PHONE,
-                            camera_data.get("name", "Unknown Camera"),
-                            camera_data.get("latitude", 0),
-                            camera_data.get("longitude", 0)
+                            "CCTV",  # Generic camera name
+                            latitude,
+                            longitude
                         )
-                        last_fire_alerts[camera_id] = datetime.utcnow()
-                        logger.info(f"Emergency call completed for camera {camera_id}")
+                        
+                        if call_result:
+                            last_fire_alerts[camera_id] = datetime.utcnow()
+                            logger.info(f"✅ Emergency call completed successfully for camera {camera_id}")
+                        else:
+                            logger.error(f"❌ Emergency call failed for camera {camera_id}")
                     else:
-                        logger.warning("No emergency phone number found in .env")
+                        logger.error("❌ Emergency call failed: EMERGENCY_PHONE_NUMBER not found in .env")
                 except Exception as e:
-                    logger.error(f"Failed to make emergency call for camera {camera_id}: {str(e)}")
+                    logger.error(f"Failed to make emergency call for camera {camera_id}")
+                    logger.error(f"Error details: {str(e)}")
+                    logger.error(f"Camera data: {camera_data}")
+                    # Log Twilio environment variables (without tokens)
+                    logger.error(f"Twilio phone number configured: {'Yes' if os.getenv('TWILIO_PHONE_NUMBER') else 'No'}")
+                    logger.error(f"Twilio account SID configured: {'Yes' if os.getenv('TWILIO_ACCOUNT_SID') else 'No'}")
+                    logger.error(f"Twilio auth token configured: {'Yes' if os.getenv('TWILIO_AUTH_TOKEN') else 'No'}")
             
         return result.modified_count > 0
     except Exception as e:
@@ -132,7 +161,7 @@ async def process_camera(camera):
             logger.warning(f"Skipping camera {camera_title} - no ID found")
             return
             
-        logger.debug(f"Processing camera: {camera_title} (ID: {camera_id})")
+        logger.info(f"Processing camera: {camera_title} (ID: {camera_id})")  # Changed to info for better visibility
         current_time = datetime.utcnow().isoformat()
         
         try:
@@ -142,10 +171,10 @@ async def process_camera(camera):
             # Get image data based on camera type
             if is_droidcam:
                 webcam_data = get_droidcam_frame(camera_id)
-                logger.debug(f"Got DroidCam frame for camera {camera_id}")
+                logger.info(f"Got DroidCam frame for camera {camera_id}")  # Changed to info
             else:
                 webcam_data = get_base64_of_webcam_image(camera.get('url'))
-                logger.debug(f"Got webcam image for camera {camera_id}")
+                logger.info(f"Got webcam image for camera {camera_id}")  # Changed to info
             
             if webcam_data and 'image' in webcam_data:
                 # Store the image first
@@ -157,27 +186,64 @@ async def process_camera(camera):
                 
                 # Process the image for fire detection
                 detection_result = process_base64_image(webcam_data['image'])
-                logger.debug(f"Detection result for camera {camera_id}: {detection_result}")
+                logger.info(f"Detection result for camera {camera_id}: {detection_result}")  # Changed to info
                 
                 if detection_result:
+                    is_fire = detection_result['class'] == 'Fire'
+                    confidence = float(detection_result['confidence'])
+                    
                     # Update the camera status
                     status_data = {
                         'timestamp': current_time,
-                        'fire_detected': detection_result['class'] == 'Fire',
-                        'confidence': float(detection_result['confidence']),
+                        'fire_detected': is_fire,
+                        'confidence': confidence,
                         'error': None
                     }
                     
                     await update_camera_status(camera_id, status_data)
-                    if status_data['fire_detected']:
+                    
+                    if is_fire:
                         logger.info(
-                            f"Fire detected for camera {camera_title} (ID: {camera_id}) "
-                            f"with confidence: {status_data['confidence']:.2%}"
+                            f"🔥 FIRE DETECTED for camera {camera_title} (ID: {camera_id}) "
+                            f"with confidence: {confidence:.2%}"
                         )
+                        
+                        # Directly make emergency call here for immediate response
+                        if should_make_emergency_call(camera_id):
+                            try:
+                                if EMERGENCY_PHONE:
+                                    logger.info(f"Making immediate emergency call to {EMERGENCY_PHONE}")
+                                    camera_name = camera.get("name", "Unknown Camera")
+                                    latitude = camera.get("latitude", 0)
+                                    longitude = camera.get("longitude", 0)
+                                    
+                                    # Make the call
+                                    call_result = make_emergency_call(
+                                        EMERGENCY_PHONE,
+                                        "CCTV",  # Generic camera name
+                                        latitude,
+                                        longitude
+                                    )
+                                    
+                                    if call_result:
+                                        last_fire_alerts[camera_id] = datetime.utcnow()
+                                        logger.info(f"✅ Emergency call completed successfully for camera {camera_id}")
+                                    else:
+                                        logger.error(f"❌ Emergency call failed for camera {camera_id}")
+                                else:
+                                    logger.error("❌ Emergency call failed: EMERGENCY_PHONE_NUMBER not found in .env")
+                            except Exception as e:
+                                logger.error(f"❌ Failed to make emergency call for camera {camera_id}")
+                                logger.error(f"Error details: {str(e)}")
+                                logger.error(f"Camera data: {camera}")
+                                # Log Twilio environment variables (without tokens)
+                                logger.error(f"Twilio phone number configured: {'Yes' if os.getenv('TWILIO_PHONE_NUMBER') else 'No'}")
+                                logger.error(f"Twilio account SID configured: {'Yes' if os.getenv('TWILIO_ACCOUNT_SID') else 'No'}")
+                                logger.error(f"Twilio auth token configured: {'Yes' if os.getenv('TWILIO_AUTH_TOKEN') else 'No'}")
                     else:
-                        logger.debug(
+                        logger.info(
                             f"No fire detected for camera {camera_title} "
-                            f"(Confidence: {status_data['confidence']:.2%})"
+                            f"(Confidence: {confidence:.2%})"
                         )
                 else:
                     # Update with processing error
@@ -239,31 +305,32 @@ async def process_all_cameras():
 def start_fire_monitoring():
     """Start the fire monitoring background task."""
     async def run_monitoring():
-        try:
-            # Get the running loop or create a new one
+        logger.info("Starting fire monitoring service...")
+        while True:
             try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
-            while True:
-                try:
-                    await process_all_cameras()
-                except Exception as e:
-                    logger.error(f"Error in monitoring cycle: {e}")
-                finally:
-                    await asyncio.sleep(RECHECK_INTERVAL)
-        except Exception as e:
-            logger.error(f"Error in run_monitoring: {e}")
-    
-    # Create task in the current event loop
+                logger.info("Running fire detection cycle...")
+                await process_all_cameras()
+                logger.info("Completed fire detection cycle, waiting for next interval...")
+            except Exception as e:
+                logger.error(f"Error in monitoring cycle: {e}")
+            finally:
+                await asyncio.sleep(RECHECK_INTERVAL)
+
+    # Get the event loop from the current context
     try:
         loop = asyncio.get_event_loop()
-        loop.create_task(run_monitoring())
-    except Exception as e:
-        logger.error(f"Error starting fire monitoring: {e}")
-        # If we can't get the current loop, create a new one
+        if loop.is_running():
+            logger.info("Creating fire monitoring task in existing loop")
+            asyncio.create_task(run_monitoring())
+        else:
+            logger.info("Starting new event loop for fire monitoring")
+            loop.create_task(run_monitoring())
+            loop.run_forever()
+    except RuntimeError:
+        logger.warning("No event loop found, creating new one")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.create_task(run_monitoring())
+        loop.run_forever()
+    except Exception as e:
+        logger.error(f"Error in start_fire_monitoring: {e}")

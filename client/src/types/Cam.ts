@@ -9,20 +9,18 @@ interface RelatedPark {
   
   interface CamData {
     _id: string;
-    id: string;
-    url: string;
-    title: string;
-    description: string;
-    images: string[];
-    relatedParks: RelatedPark[];
-    status: string;
-    statusMessage: string;
-    isStreaming: boolean;
-    tags: string[];
+    name: string;
+    ip_address: string;
+    user_id: string;
+    fire_detected: boolean;
+    created_at: string;
+    confidence: number;
+    last_alert: string | null;
+    last_checked: string;
     latitude: number;
     longitude: number;
-    geometryPoiId: string;
-    credit: string;
-    confidence: number
+    last_connected: string;
+    status: string;
+    email: string;
   }
   export default CamData

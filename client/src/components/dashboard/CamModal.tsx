@@ -1,9 +1,15 @@
 // @ts-nocheck
-import React, { useEffect } from "react";
+import React from "react";
 import { FaXmark } from "react-icons/fa6";
+import { FaSpinner } from "react-icons/fa";
 import useImgById from "../../hooks/useImgById";
+
 import { FaSpinner } from "react-icons/fa";
 import { motion } from "framer-motion";
+
+import { useWeather } from "../../hooks/useWeather";
+import { WiHumidity, WiStrongWind, WiThermometer } from "react-icons/wi";
+
 
 interface CamData {
   camera_id: string;
@@ -21,6 +27,10 @@ const CamModal: React.FC<CamModalProps> = ({
   selectedCam,
 }) => {
   const { data, loading, error } = useImgById(selectedCam?.id || "");
+  const { data: weatherData, loading: weatherLoading, error: weatherError } = useWeather(
+    selectedCam?.latitude || 0,
+    selectedCam?.longitude || 0
+  );
 
   if (loading) {
     return (
@@ -76,6 +86,58 @@ const CamModal: React.FC<CamModalProps> = ({
                 </p>
               </div>
               <p className="pt-2">{selectedCam.description}</p>
+
+              {/* Weather Information */}
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                {weatherLoading ? (
+                  <div className="flex justify-center py-4">
+                    <FaSpinner className="animate-spin text-2xl text-gray-500" />
+                  </div>
+                ) : weatherError ? (
+                  <p className="text-center text-red-500">Failed to load weather data</p>
+                ) : weatherData && weatherData.main ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={`http://openweathermap.org/img/w/${weatherData.weather[0].icon}.png`}
+                          alt={weatherData.weather[0].description}
+                          className="h-12 w-12"
+                        />
+                        <div>
+                          <p className="text-lg font-medium">{weatherData.weather[0].main}</p>
+                          <p className="text-sm text-gray-600 capitalize">{weatherData.weather[0].description}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-4">
+                      <div className="flex items-center gap-2">
+                        <WiThermometer className="text-2xl text-gray-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Temperature</p>
+                          <p className="font-medium">{Math.round(weatherData.main.temp)}°C</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <WiHumidity className="text-2xl text-gray-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Humidity</p>
+                          <p className="font-medium">{weatherData.main.humidity}%</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <WiStrongWind className="text-2xl text-gray-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Wind Speed</p>
+                          <p className="font-medium">{weatherData.wind.speed} m/s</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-center text-gray-500">No weather data available</p>
+                )}
+              </div>
             </>
           ) : (
             <p className="text-center text-gray-500">

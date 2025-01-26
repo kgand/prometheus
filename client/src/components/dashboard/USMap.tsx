@@ -11,6 +11,7 @@ import { useCams } from "../../hooks/useCams";
 import { FaSpinner } from "react-icons/fa";
 import { IoReload } from "react-icons/io5";
 import { useWildfires } from "../../hooks/useWildfires";
+import { useFireStatus } from "../../services/websocket/client";
 import Pin from "./Pin";
 import Wildfire from "./Wildfire";
 import MapOptions from "./MapOptions";
@@ -24,11 +25,20 @@ const USMap = () => {
     loading: firesLoading,
     error: fireError,
   } = useWildfires();
+  const fireStatuses = useFireStatus();
 
   const [zoomLevel, setZoomLevel] = useState(1);
   const [center, setCenter] = useState([-96, 40]);
   const [showPins, setShowPins] = useState<boolean>(true);
   const [showWildfires, setShowWildfires] = useState<boolean>(true);
+
+  // Get active fire locations from fireStatuses
+  const activeFirePins = Object.values(fireStatuses)
+    .filter(status => status.fireDetected && status.location)
+    .map(status => ({
+      coordinates: [status.location.lng, status.location.lat],
+      cameraId: status.cameraId
+    }));
 
   useEffect(() => {
     document.documentElement.style.setProperty("--zoom", zoomLevel.toString());
@@ -75,7 +85,6 @@ const USMap = () => {
   const handleMoveEnd = ({ zoom, coordinates }) => {
     setZoomLevel(zoom);
     setCenter(coordinates);
-    console.log("Current zoom level:", zoom, "Center:", coordinates);
   };
 
   const resetCenter = () => {
@@ -115,7 +124,7 @@ const USMap = () => {
             center={center}
             minZoom={1}
             maxZoom={8}
-            onMoveEnd={handleMoveEnd} // Track zoom and center changes
+            onMoveEnd={handleMoveEnd}
           >
             <Geographies geography={USA_TOPO_JSON}>
               {({ geographies }) =>
@@ -139,6 +148,14 @@ const USMap = () => {
                   : null
               }
             </Geographies>
+
+            {/* Dynamic fire pins */}
+            {activeFirePins.map((firePin) => (
+              <Marker key={firePin.cameraId} coordinates={firePin.coordinates}>
+                <circle r={6} fill="#FF0000" className="cursor-pointer animate-pulse" />
+                <circle r={12} fill="#FF0000" fillOpacity={0.3} className="cursor-pointer animate-ping" />
+              </Marker>
+            ))}
 
             {showPins && (
               <>

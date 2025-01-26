@@ -20,6 +20,13 @@ from bson import ObjectId
 from typing import Optional, List
 from ws_manager import manager
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Load environment variables
 load_dotenv()
 
@@ -87,33 +94,65 @@ def start_fire_monitoring():
 # Add startup event handler
 @app.on_event("startup")
 async def startup_event():
-    # Initialize DroidCam using IP from .env
-    droidcam_ip = os.getenv("DROIDCAM_IP")
-    if not droidcam_ip:
-        logging.warning("DROIDCAM_IP not found in .env")
-        return
+    """Initialize services on startup."""
+    try:
+        # Initialize DroidCam using IP from .env
+        droidcam_ip = os.getenv("DROIDCAM_IP")
+        if not droidcam_ip:
+            logger.warning("DROIDCAM_IP not found in .env")
+            return
 
-    # Check if a default camera already exists for this IP
-    default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
+        # Check if a default camera already exists for this IP
+        default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
 
-    if default_camera:
-        camera_id = default_camera["_id"]
-    else:
-        # Create a default camera entry
-        result = user_cctv.insert_one(
-            {
+        if default_camera:
+            camera_id = default_camera["_id"]
+            logger.info(f"Found existing camera configuration for {droidcam_ip}")
+        else:
+            # Create a default camera entry
+            result = user_cctv.insert_one({
                 "name": "Default DroidCam",
                 "ip_address": droidcam_ip,
-                "user_id": "system",  # Use a system identifier for the default camera
+                "user_id": "system",
                 "fire_detected": False,
                 "created_at": datetime.utcnow(),
-            }
-        )
-        camera_id = result.inserted_id
+                "latitude": 29.652,  # Default location
+                "longitude": 82.325
+            })
+            camera_id = result.inserted_id
+            logger.info(f"Created new camera configuration for {droidcam_ip}")
 
-    droidcam_url = f"http://{droidcam_ip}:4747/video"
-    if not initialize_droidcam(droidcam_url, camera_id):
-        logging.error("Failed to initialize DroidCam")
+        # Try to initialize the camera
+        droidcam_url = f"http://{droidcam_ip}:4747/video"
+        if not initialize_droidcam(droidcam_url, camera_id):
+            logger.error(f"Failed to initialize DroidCam at {droidcam_url}")
+            # Update camera status to indicate connection failure
+            user_cctv.update_one(
+                {"_id": camera_id},
+                {
+                    "$set": {
+                        "status": "offline",
+                        "last_error": "Failed to connect to camera",
+                        "last_error_time": datetime.utcnow()
+                    }
+                }
+            )
+        else:
+            logger.info(f"Successfully initialized DroidCam at {droidcam_url}")
+            # Update camera status to indicate successful connection
+            user_cctv.update_one(
+                {"_id": camera_id},
+                {
+                    "$set": {
+                        "status": "online",
+                        "last_connected": datetime.utcnow()
+                    }
+                }
+            )
+
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+
     # Start the fire monitoring service
     # start_fire_monitoring()
 

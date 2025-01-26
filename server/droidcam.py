@@ -112,3 +112,11 @@ def read_frames():
 def get_frame():
     """Get the current frame."""
     return frame
+
+def generate_frames():
+    """Generate frames for video streaming."""
+    while is_running:
+        if frame is not None:
+            _, buffer = cv2.imencode('.jpg', frame)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')

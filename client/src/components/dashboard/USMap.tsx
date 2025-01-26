@@ -10,20 +10,30 @@ import {
 import { useCams } from "../../hooks/useCams";
 import { FaSpinner } from "react-icons/fa";
 import { IoReload } from "react-icons/io5";
+import { useWildfires } from "../../hooks/useWildfires";
+import Pin from "./Pin";
+import Wildfire from "./Wildfire";
+import MapOptions from "./MapOptions";
 
 const USA_TOPO_JSON = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
 const USMap = () => {
   const { data, loading, isError, error } = useCams();
+  const {
+    data: wildfires,
+    loading: firesLoading,
+    error: fireError,
+  } = useWildfires();
 
-  const [zoomLevel, setZoomLevel] = useState(1); // State to store zoom level
-  const [center, setCenter] = useState([-96, 40]); // State to store the map center
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [center, setCenter] = useState([-96, 40]);
+  const [showPins, setShowPins] = useState<boolean>(true);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--zoom", zoomLevel.toString());
   }, [zoomLevel]);
 
-  if (loading)
+  if (loading || firesLoading)
     return (
       <div className="flex justify-center pt-20">
         <span className="animate-spin text-3xl">
@@ -32,7 +42,7 @@ const USMap = () => {
       </div>
     );
 
-  if (isError) return <p>Error loading data: {error}</p>;
+  if (isError || fireError) return <p>Error loading data: {error}</p>;
 
   const pins = data
     .filter((cam) => {
@@ -72,14 +82,23 @@ const USMap = () => {
     setZoomLevel(1);
   };
 
+  const wildfireSizes = wildfires.map(
+    (wf) => parseInt(wf.properties.size, 10) || 0,
+  );
+  const minSize = Math.min(...wildfireSizes);
+  const maxSize = Math.max(...wildfireSizes);
+
   return (
-    <div className="relative h-full w-full flex justify-center">
-      <button
-        className="absolute right-2 bottom-2 rounded-lg bg-[#cacaca] p-3 text-white shadow-lg cursor-pointer"
-        onClick={resetCenter}
-      >
-       <IoReload className="text-xl text-[#404040]"/>
-      </button>
+    <div className="relative flex h-full w-full justify-center">
+      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-4">
+        <button
+          className="cursor-pointer rounded-lg bg-[#cacaca] p-3 text-white shadow-lg"
+          onClick={resetCenter}
+        >
+          <IoReload className="text-xl text-[#404040]" />
+        </button>
+       <MapOptions/>
+      </div>
       <div className="h-full w-full max-w-[900px] cursor-grab pt-4">
         <ComposableMap
           projection="geoAlbersUsa"
@@ -115,42 +134,26 @@ const USMap = () => {
               }
             </Geographies>
 
-            {pins.map((pin, index) => (
-              <Pin key={index} pin={pin} />
+            {showPins && (
+              <>
+                {pins.map((pin, index) => (
+                  <Pin key={index} pin={pin} />
+                ))}
+              </>
+            )}
+
+            {wildfires.map((fire) => (
+              <Wildfire
+                key={fire.properties.id}
+                fire={fire}
+                minSize={minSize}
+                maxSize={maxSize}
+              />
             ))}
           </ZoomableGroup>
         </ComposableMap>
       </div>
     </div>
-  );
-};
-
-const Pin = ({ pin }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  console.log(pin.confidence);
-
-  return (
-    <Marker
-      coordinates={pin.coordinates}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="relative"
-    >
-      {pin.confidence < 34 && (
-        <circle r={4} fill="#4ADE80" className="cursor-pointer" />
-      )}
-      {pin.confidence >= 34 && pin.confidence < 67 && (
-        <circle r={4} fill="#FACC15" className="cursor-pointer" />
-      )}
-      {pin.confidence > 67 && (
-        <circle r={4} fill="#6E1423" className="cursor-pointer" />
-      )}
-      {isHovered && (
-        <text x={5} y={-10} className="txt">
-          {pin.name}
-        </text>
-      )}
-    </Marker>
   );
 };
 

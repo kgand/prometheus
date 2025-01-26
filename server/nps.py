@@ -66,13 +66,8 @@ def get_base64_of_webcam_image(url: str):
 
     img_base64 = image_bytes_to_base64(img_response.content)
     
-    # Get detection results
-    from utils.video_processing import process_base64_image
-    detection_result = process_base64_image(img_base64)
-
     return {
-        'image': img_base64,
-        'detection': detection_result
+        'image': img_base64
     }
 
 

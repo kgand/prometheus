@@ -14,7 +14,7 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     print("Connected to database")
 
-    db = client.prometheus
+    db = client.database
 
     # Collections
     parkcams = db.parkcams

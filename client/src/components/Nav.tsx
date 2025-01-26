@@ -17,7 +17,7 @@ export default function Nav() {
               <Link to={"/dashboard/mapview"} >Cams</Link>
             </li>
             <li>
-              <button onClick={() => loginWithRedirect()} >Login</button>
+              <button onClick={() => loginWithRedirect()} className="cursor-pointer">Login</button>
             </li>
             <li>
               <a href="" >Go Live</a>

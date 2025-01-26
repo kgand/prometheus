@@ -16,7 +16,7 @@ import Pin from "./Pin";
 import Wildfire from "./Wildfire";
 import MapOptions from "./MapOptions";
 import CamData from "../../types/Cam";
-import { FaXmark } from "react-icons/fa6";
+import { motion } from "framer-motion";
 import CamModal from "./CamModal";
 import WildfireModal from "./WildfireModal";
 
@@ -37,15 +37,14 @@ const USMap = () => {
   const [showWildfires, setShowWildfires] = useState<boolean>(true);
   const [showCamModal, setShowCamModal] = useState<boolean>(false);
   const [selectedCam, setSelectedCam] = useState<CamData | null>(null);
-  const [selectedWildfire, setSelectedWildfire] = useState<any>("")
-  const [showWildfireModal, setShowWildfireModal] = useState<boolean>(false)
+  const [selectedWildfire, setSelectedWildfire] = useState<any>("");
+  const [showWildfireModal, setShowWildfireModal] = useState<boolean>(false);
 
-  // Get active fire locations from fireStatuses
   const activeFirePins = Object.values(fireStatuses)
-    .filter(status => status.fireDetected && status.location)
-    .map(status => ({
+    .filter((status) => status.fireDetected && status.location)
+    .map((status) => ({
       coordinates: [status.location.lng, status.location.lat],
-      cameraId: status.cameraId
+      cameraId: status.cameraId,
     }));
 
   useEffect(() => {
@@ -109,10 +108,14 @@ const USMap = () => {
   return (
     <div className="relative flex h-full w-full justify-center">
       {showCamModal && (
-        <CamModal selectedCam={selectedCam} setShowCamModal={setShowCamModal}/>
+        <CamModal selectedCam={selectedCam} setShowCamModal={setShowCamModal} />
       )}
-      {showWildfireModal &&
-      <WildfireModal selectedWildfire={selectedWildfire} setShowWildfireModal={setShowWildfireModal}/>}
+      {showWildfireModal && (
+        <WildfireModal
+          selectedWildfire={selectedWildfire}
+          setShowWildfireModal={setShowWildfireModal}
+        />
+      )}
       <div className="absolute right-2 bottom-2 flex flex-col items-end gap-4">
         <button
           className="cursor-pointer rounded-lg bg-[#cacaca] p-3 text-white shadow-lg"
@@ -127,11 +130,14 @@ const USMap = () => {
           setShowWildfires={setShowWildfires}
         />
       </div>
-      <div className="h-full w-full max-w-[900px] cursor-grab mt-4">
-        <ComposableMap
-          projection="geoAlbersUsa"
-          style={{ overflow: "visible" }}
-        >
+      <motion.div
+        className="h-full w-full max-w-[900px] cursor-grab mt-4"
+        initial={{ opacity: 0, scale: 0.9 }} // Starts faded and slightly scaled down
+        animate={{ opacity: 1, scale: 1 }} // Fades in and scales to normal size
+        exit={{ opacity: 0, scale: 0.8 }} // Fades out and scales down
+        transition={{ duration: 0.3, ease: "easeInOut" }} // Smooth transition
+      >
+        <ComposableMap projection="geoAlbersUsa" style={{ overflow: "visible" }}>
           <ZoomableGroup
             zoom={zoomLevel}
             center={center}
@@ -162,44 +168,30 @@ const USMap = () => {
               }
             </Geographies>
 
-            {/* Dynamic fire pins */}
-            {/* {activeFirePins.map((firePin) => (
-              <Marker key={firePin.cameraId} coordinates={firePin.coordinates}>
-                <circle r={6} fill="#FF0000" className="cursor-pointer animate-pulse" />
-                <circle r={12} fill="#FF0000" fillOpacity={0.3} className="cursor-pointer animate-ping" />
-              </Marker>
-            ))} */}
+            {showPins &&
+              pins.map((pin, index) => (
+                <Pin
+                  key={index}
+                  pin={pin}
+                  setShowCamModal={setShowCamModal}
+                  setSelectedCam={setSelectedCam}
+                />
+              ))}
 
-            {showPins && (
-              <>
-                {pins.map((pin, index) => (
-                  <Pin
-                    key={index}
-                    pin={pin}
-                    setShowCamModal={setShowCamModal}
-                    setSelectedCam={setSelectedCam}
-                  />
-                ))}
-              </>
-            )}
-
-            {showWildfires && (
-              <>
-                {wildfires.map((fire) => (
-                  <Wildfire
-                    key={fire.properties.id}
-                    fire={fire}
-                    minSize={minSize}
-                    maxSize={maxSize}
-                    setShowWildfireModal={setShowWildfireModal}
-                    setSelectedWildfire={setSelectedWildfire}
-                  />
-                ))}
-              </>
-            )}
+            {showWildfires &&
+              wildfires.map((fire) => (
+                <Wildfire
+                  key={fire.properties.id}
+                  fire={fire}
+                  minSize={minSize}
+                  maxSize={maxSize}
+                  setShowWildfireModal={setShowWildfireModal}
+                  setSelectedWildfire={setSelectedWildfire}
+                />
+              ))}
           </ZoomableGroup>
         </ComposableMap>
-      </div>
+      </motion.div>
     </div>
   );
 };

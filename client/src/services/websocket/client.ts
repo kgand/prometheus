@@ -113,7 +113,6 @@ export const initializeWebSocket = () => {
 
 export const useFireStatus = () => {
   return useWebSocketStore((state: WebSocketStore) => {
-    console.log('Current fire statuses:', state.fireStatuses);
     return state.fireStatuses;
   });
 }; 

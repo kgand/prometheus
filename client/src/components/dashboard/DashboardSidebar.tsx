@@ -6,6 +6,7 @@ import {
   FaHome,
   FaMapMarked,
   FaUser,
+  FaLock,
 } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
 import { MdFireTruck, MdLogin, MdPark } from "react-icons/md";
@@ -21,6 +22,13 @@ export default function DashboardSidebar() {
 
   // Add user profile section if authenticated
   const userEmail = user?.email;
+
+  const handleYourCamsClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      loginWithRedirect();
+    }
+  };
 
   return (
     <>
@@ -70,14 +78,23 @@ export default function DashboardSidebar() {
                 >
                   <MdPark /> Park Cams
                 </Link>
-                {isAuthenticated && (
-                  <Link
-                    to="/dashboard/yourcams"
-                    className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
-                  >
-                    <FaCamera /> Your Cams
-                  </Link>
-                )}
+                <div
+                  onClick={handleYourCamsClick}
+                  className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
+                >
+                  {!isAuthenticated ? (
+                    <>
+                      <FaCamera /> Access Your Cams
+                    </>
+                  ) : (
+                    <Link
+                      to="/dashboard/yourcams"
+                      className="flex items-center gap-2"
+                    >
+                      <FaCamera /> Your Cams
+                    </Link>
+                  )}
+                </div>
                 <Link
                   to="/dashboard/alerts"
                   className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"

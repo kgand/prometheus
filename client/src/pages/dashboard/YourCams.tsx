@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { useUserCams } from "../../hooks/useCams";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaLock } from "react-icons/fa";
 
 interface AddCameraForm {
   ip_address: string;
@@ -11,7 +11,7 @@ interface AddCameraForm {
 }
 
 export default function YourCams() {
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
   const { data: cameras, loading, error } = useUserCams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState<AddCameraForm>({
@@ -19,8 +19,6 @@ export default function YourCams() {
     latitude: 0,
     longitude: 0,
   });
-
-  const userCameras = cameras.filter((cam) => cam.email === user?.email);
 
   const handleAddCamera = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,20 +30,17 @@ export default function YourCams() {
       });
       setShowAddForm(false);
       setFormData({ ip_address: "", latitude: 0, longitude: 0 });
-      // Refresh cameras (you might want to add a refresh function to useCams)
       window.location.reload();
     } catch (error) {
       console.error("Error adding camera:", error);
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-lg">Please sign in to view your cameras</p>
-      </div>
-    );
-  }
+  const handleCameraClick = () => {
+    if (!isAuthenticated) {
+      loginWithRedirect();
+    }
+  };
 
   if (loading) {
     return (
@@ -63,19 +58,36 @@ export default function YourCams() {
     );
   }
 
+  // Filter cameras based on authentication
+  const displayCameras = isAuthenticated ? cameras.filter(cam => cam.email === user?.email) : cameras;
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Your Cameras</h1>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 rounded-lg bg-red-800 px-4 py-2 text-white hover:bg-red-900"
-        >
-          <FaPlus /> Add Camera
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold">Your Cameras</h1>
+          {!isAuthenticated && (
+            <p className="mt-2 text-gray-600">Sign in to manage these cameras or add your own</p>
+          )}
+        </div>
+        {isAuthenticated ? (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 rounded-lg bg-red-800 px-4 py-2 text-white hover:bg-red-900"
+          >
+            <FaPlus /> Add Camera
+          </button>
+        ) : (
+          <button
+            onClick={() => loginWithRedirect()}
+            className="flex items-center gap-2 rounded-lg bg-red-800 px-4 py-2 text-white hover:bg-red-900"
+          >
+            <FaLock /> Sign in to Add Camera
+          </button>
+        )}
       </div>
 
-      {showAddForm && (
+      {showAddForm && isAuthenticated && (
         <div className="mb-6 rounded-lg border border-gray-200 p-4">
           <h2 className="mb-4 text-xl font-semibold">Add New Camera</h2>
           <form onSubmit={handleAddCamera} className="grid gap-4">
@@ -137,11 +149,19 @@ export default function YourCams() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {userCameras.map((camera) => (
+        {displayCameras.map((camera) => (
           <div
             key={camera._id}
-            className="rounded-lg border border-gray-200 p-4 shadow-sm"
+            className={`relative rounded-lg border border-gray-200 p-4 shadow-sm ${
+              !isAuthenticated ? "cursor-pointer hover:shadow-md" : ""
+            }`}
+            onClick={!isAuthenticated ? handleCameraClick : undefined}
           >
+            {!isAuthenticated && (
+              <div className="absolute top-2 right-2">
+                <FaLock className="text-gray-400" />
+              </div>
+            )}
             <h3 className="mb-2 text-lg font-semibold">{camera.name}</h3>
             <p>IP: {camera.ip_address}</p>
             <p>Status: {camera.status}</p>

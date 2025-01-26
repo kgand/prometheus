@@ -165,12 +165,30 @@ def load_model():
     """Load the fire detection model."""
     global model
     try:
-        # Initialize model with proper weights parameter
-        model = models.inception_v3(weights=None, init_weights=True)
-        model.fc = torch.nn.Linear(model.fc.in_features, 3)
-        state_dict = torch.load('inception_final.pth', map_location=torch.device('cpu'), weights_only=True)
-        model.load_state_dict(state_dict)
-        model.eval()
+        # Initialize model with proper weights parameter and silence warnings
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            warnings.filterwarnings("ignore", category=FutureWarning)
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            
+            # Load model with explicit initialization parameters
+            model = models.inception_v3(weights=None)
+            model.fc = torch.nn.Linear(model.fc.in_features, 3)
+            
+            # Initialize weights explicitly
+            for m in model.modules():
+                if isinstance(m, (torch.nn.Conv2d, torch.nn.Linear)):
+                    torch.nn.init.kaiming_normal_(m.weight)
+                elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.BatchNorm1d)):
+                    torch.nn.init.constant_(m.weight, 1)
+                    torch.nn.init.constant_(m.bias, 0)
+            
+            # Load trained weights
+            state_dict = torch.load('inception_final.pth', map_location=torch.device('cpu'), weights_only=True)
+            model.load_state_dict(state_dict)
+            model.eval()
+            
         return True
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -215,22 +233,41 @@ def preprocess_frame(frame):
 def initialize_droidcam(video_url, camera_id):
     """Initialize DroidCam feed."""
     global cameras
+    max_retries = 3
+    retry_delay = 5  # seconds
     
     try:
         # Load model if not loaded
         if model is None and not load_model():
             raise RuntimeError("Failed to load fire detection model")
             
-        # Create and start new camera instance
-        camera = DroidCamera(camera_id, video_url)
-        if camera.start():
-            cameras[str(camera_id)] = camera
-            return True
-            
+        # Try to connect with retries
+        for attempt in range(max_retries):
+            try:
+                # Create and start new camera instance
+                camera = DroidCamera(camera_id, video_url)
+                if camera.start():
+                    cameras[str(camera_id)] = camera
+                    print(f"Successfully connected to camera {camera_id} on attempt {attempt + 1}")
+                    return True
+                    
+                if attempt < max_retries - 1:
+                    print(f"Failed to connect to camera {camera_id}, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"Error connecting to camera {camera_id} (attempt {attempt + 1}): {e}")
+                    print(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    raise
+                    
+        print(f"Failed to connect to camera {camera_id} after {max_retries} attempts")
         return False
         
     except Exception as e:
-        print(f"Error initializing camera: {e}")
+        print(f"Error initializing camera {camera_id}: {e}")
         return False
 
 def cleanup():

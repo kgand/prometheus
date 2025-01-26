@@ -11,7 +11,7 @@ const WildfireModal = ({ setShowWildfireModal, selectedWildfire }) => {
       onClick={() => setShowWildfireModal(false)}
     >
       <motion.div
-        className="relative max-h-[400px] w-[500px] overflow-y-auto rounded-xl border border-gray-300 bg-white shadow-xl"
+        className="relative max-h-[600px] w-[500px] overflow-y-auto rounded-xl border border-gray-300 bg-white shadow-x cs-scroll"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, y: -50 }} // Modal starts invisible and slightly above
         animate={{ opacity: 1, y: 0 }} // Modal fades in and slides to its position

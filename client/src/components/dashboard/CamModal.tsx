@@ -51,7 +51,7 @@ const CamModal: React.FC<CamModalProps> = ({
       onClick={() => setShowCamModal(false)}
     >
       <motion.div
-        className="relative w-[500px] rounded-xl border border-gray-300 bg-white shadow-xl max-h-[600px] overflow-y-auto"
+        className="relative w-[500px] rounded-xl border border-gray-300 bg-white shadow-xl max-h-[700px] overflow-y-auto cs-scroll"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, y: -50 }} // Initial state: invisible and shifted upward
         animate={{ opacity: 1, y: 0 }} // Visible and positioned at the center

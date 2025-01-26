@@ -31,3 +31,33 @@ body {
   backdrop-filter: blur(10px);
 }
 
+
+
+
+.cs-scroll {
+  --sb-track-color: #ffffff;
+  --sb-thumb-color: #737373;
+  --sb-size: 6px;
+}
+
+.cs-scroll::-webkit-scrollbar {
+  width: var(--sb-size)
+}
+
+.cs-scroll::-webkit-scrollbar-track {
+  background: var(--sb-track-color);
+  border-radius: 50px;
+}
+
+.cs-scroll::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 50px;
+  
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .cs-scroll {
+    scrollbar-color: var(--sb-thumb-color)
+                     var(--sb-track-color);
+  }
+}

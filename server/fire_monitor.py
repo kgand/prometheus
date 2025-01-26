@@ -101,10 +101,13 @@ def process_all_cameras():
 def main():
     print("Starting fire monitoring service...")
     
-    # Basic scheduling and startup mechanism
+    # Schedule the task to run every 5 minutes
     schedule.every(5).minutes.do(process_all_cameras)
+    
+    # Run immediately on startup
     process_all_cameras()
     
+    # Keep the script running
     while True:
         schedule.run_pending()
         time.sleep(1)

@@ -28,6 +28,7 @@ const USMap = () => {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [center, setCenter] = useState([-96, 40]);
   const [showPins, setShowPins] = useState<boolean>(true);
+  const [showWildfires, setShowWildfires] = useState<boolean>(true);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--zoom", zoomLevel.toString());
@@ -90,14 +91,19 @@ const USMap = () => {
 
   return (
     <div className="relative flex h-full w-full justify-center">
-      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-4">
+      <div className="absolute right-2 bottom-2 flex flex-col items-end gap-4">
         <button
           className="cursor-pointer rounded-lg bg-[#cacaca] p-3 text-white shadow-lg"
           onClick={resetCenter}
         >
           <IoReload className="text-xl text-[#404040]" />
         </button>
-       <MapOptions/>
+        <MapOptions
+          showPins={showPins}
+          setShowPins={setShowPins}
+          showWildfires={showWildfires}
+          setShowWildfires={setShowWildfires}
+        />
       </div>
       <div className="h-full w-full max-w-[900px] cursor-grab pt-4">
         <ComposableMap
@@ -142,14 +148,18 @@ const USMap = () => {
               </>
             )}
 
-            {wildfires.map((fire) => (
-              <Wildfire
-                key={fire.properties.id}
-                fire={fire}
-                minSize={minSize}
-                maxSize={maxSize}
-              />
-            ))}
+            {showWildfires && (
+              <>
+                {wildfires.map((fire) => (
+                  <Wildfire
+                    key={fire.properties.id}
+                    fire={fire}
+                    minSize={minSize}
+                    maxSize={maxSize}
+                  />
+                ))}
+              </>
+            )}
           </ZoomableGroup>
         </ComposableMap>
       </div>

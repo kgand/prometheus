@@ -13,7 +13,7 @@ export default function MapView() {
         <p className="flex items-center gap-2.5"><span className="bg-red-800 rounded-full w-4 h-4"/> 67-100</p>
       </div>
       <p className="text-center text-sm pt-4">Click a pin for more information.</p>
-      <div className="flex h-full w-full items-center justify-center pt-2">
+      <div className="flex h-full w-full items-center justify-center pt-2 overflow-x-hidden">
         <USMap />
       </div>
     </div>

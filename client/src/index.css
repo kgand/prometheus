@@ -13,13 +13,19 @@ body {
 }
 
 .grad {
-  position: relative;
-  background: linear-gradient(180deg, rgba(233, 233, 233, 0.80) 26.58%, rgba(233, 233, 233, 0.00) 100%);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.00) 16.88%, #FFF 99.94%);
 }
 
 .blob-blur {
-  filter: blur(40px);
+  filter: blur(80px);
 }
 
 
+.txt {
+  padding-top: 40px !important;
+  font-size: calc(24px/var(--zoom)) !important;
+}
+
+.test {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.2) 8.22%, rgba(255, 255, 255, 0.00) 95.04%, rgba(255, 255, 255, 0.80) 174.64%)
+}

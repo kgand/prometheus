@@ -1,7 +1,10 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { MdFireTruck } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 export default function Nav() {
+
+  const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
   return (
     <div className="fixed top-4 right-0 left-0 z-20 px-10">
       <div className="mx-auto flex max-w-6xl items-center justify-between rounded-xl border border-[#dadada] bg-white px-6 py-3 shadow-md">
@@ -9,15 +12,15 @@ export default function Nav() {
           <div className="flex items-center gap-2.5 text-2xl font-medium">
             <MdFireTruck className="text-red-800" /> <span>Prometheus</span>
           </div>
-          <ul className="flex gap-4 pb-0.5">
+          <ul className="flex gap-4 pb-0.5 items-center">
             <li>
-              <a href="" className="py-2 px-2">Cams</a>
+              <Link to={"/dashboard/mapview"} >Cams</Link>
             </li>
             <li>
-              <a href="">Alerts</a>
+              <button onClick={() => loginWithRedirect()} >Login</button>
             </li>
             <li>
-              <a href="">Go Live</a>
+              <a href="" >Go Live</a>
             </li>
           </ul>
         </div>      

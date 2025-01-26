@@ -17,6 +17,8 @@ import Wildfire from "./Wildfire";
 import MapOptions from "./MapOptions";
 import CamData from "../../types/Cam";
 import { FaXmark } from "react-icons/fa6";
+import CamModal from "./CamModal";
+import WildfireModal from "./WildfireModal";
 
 const USA_TOPO_JSON = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
@@ -35,6 +37,8 @@ const USMap = () => {
   const [showWildfires, setShowWildfires] = useState<boolean>(true);
   const [showCamModal, setShowCamModal] = useState<boolean>(false);
   const [selectedCam, setSelectedCam] = useState<CamData | null>(null);
+  const [selectedWildfire, setSelectedWildfire] = useState<any>("")
+  const [showWildfireModal, setShowWildfireModal] = useState<boolean>(false)
 
   // Get active fire locations from fireStatuses
   const activeFirePins = Object.values(fireStatuses)
@@ -105,12 +109,10 @@ const USMap = () => {
   return (
     <div className="relative flex h-full w-full justify-center">
       {showCamModal && (
-        <div className="modal-bg absolute inset-0 z-20 flex items-center justify-center" onClick={() => setShowCamModal(false)}>
-          <div className="h-[300px] w-[500px] rounded-xl border border-gray-300 bg-white shadow-xl relative" onClick={(e) => e.stopPropagation()}>
-            <FaXmark className="absolute top-4 right-4 text-2xl cursor-pointer" onClick={() => setShowCamModal(false)}/>
-          </div>
-        </div>
+        <CamModal selectedCam={selectedCam} setShowCamModal={setShowCamModal}/>
       )}
+      {showWildfireModal &&
+      <WildfireModal selectedWildfire={selectedWildfire} setShowWildfireModal={setShowWildfireModal}/>}
       <div className="absolute right-2 bottom-2 flex flex-col items-end gap-4">
         <button
           className="cursor-pointer rounded-lg bg-[#cacaca] p-3 text-white shadow-lg"
@@ -161,12 +163,12 @@ const USMap = () => {
             </Geographies>
 
             {/* Dynamic fire pins */}
-            {activeFirePins.map((firePin) => (
+            {/* {activeFirePins.map((firePin) => (
               <Marker key={firePin.cameraId} coordinates={firePin.coordinates}>
                 <circle r={6} fill="#FF0000" className="cursor-pointer animate-pulse" />
                 <circle r={12} fill="#FF0000" fillOpacity={0.3} className="cursor-pointer animate-ping" />
               </Marker>
-            ))}
+            ))} */}
 
             {showPins && (
               <>
@@ -189,6 +191,8 @@ const USMap = () => {
                     fire={fire}
                     minSize={minSize}
                     maxSize={maxSize}
+                    setShowWildfireModal={setShowWildfireModal}
+                    setSelectedWildfire={setSelectedWildfire}
                   />
                 ))}
               </>

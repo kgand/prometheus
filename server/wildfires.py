@@ -6,7 +6,5 @@ def get_wildfire_incidents():
 
     wildfires = data["features"]
 
-    for x in wildfires:
-        x["properties"]["field_incident_overview"] = ""
 
     return wildfires

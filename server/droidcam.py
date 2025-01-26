@@ -27,3 +27,21 @@ def load_model():
         print(f"Error loading model: {e}")
         return False
     return True
+
+def preprocess_frame(frame):
+    """Preprocess frame for model inference."""
+    transform = transforms.Compose([
+        transforms.Resize((299, 299)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    # Convert BGR to RGB and to PIL Image
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pil_image = Image.fromarray(rgb_frame)
+    
+    # Apply transformations
+    input_tensor = transform(pil_image)
+    input_batch = input_tensor.unsqueeze(0)
+    
+    return input_batch

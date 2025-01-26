@@ -14,7 +14,14 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     print("Connected to database")
 
-    return client["database"]
+    db = client.database
+
+    # Collections
+    parkcams = db.parkcams
+    user_cctv = db.user_cctv
+    fire_detections = db.fire_detections
+
+    return db
 
 
 db = get_database()

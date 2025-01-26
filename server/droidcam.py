@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from connect import db
 import asyncio
 from ws_manager import manager
+from twilio_manager import make_emergency_call
 
 # Global variables
 cameras = {}  # Store multiple camera instances
@@ -108,9 +109,19 @@ class DroidCamera:
                 # Broadcast update via WebSocket
                 await manager.broadcast_fire_status(camera_data)
                 
-            if fire_detected:
-                self.last_fire_detection = current_time
-                print(f"Fire alert for camera {self.camera_id}! Will recheck in {self.recheck_interval} seconds")
+                # If fire is detected, make emergency call
+                if fire_detected:
+                    self.last_fire_detection = current_time
+                    print(f"Fire alert for camera {self.camera_id}! Will recheck in {self.recheck_interval} seconds")
+                    
+                    # Make emergency call if phone number is available
+                    if camera_data.get("phone_number"):
+                        make_emergency_call(
+                            camera_data["phone_number"],
+                            camera_data.get("name", "Unknown Camera"),
+                            camera_data.get("latitude", 0),
+                            camera_data.get("longitude", 0)
+                        )
             
         except Exception as e:
             print(f"Error updating fire status: {e}")

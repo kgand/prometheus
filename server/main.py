@@ -1,9 +1,10 @@
-IMPORT_ML_ENDPOINTS = False
+IMPORT_ML_ENDPOINTS = True
 
 import uvicorn
 from connect import app
 from dotenv import load_dotenv
 from non_ml_endpoints import *
+from ws_endpoints import *  # Import WebSocket endpoints
 
 if IMPORT_ML_ENDPOINTS:
     from ml_endpoints import *

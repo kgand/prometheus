@@ -14,6 +14,7 @@ from droidcam import initialize_droidcam, cleanup, generate_frames
 from pydantic import BaseModel
 from bson import ObjectId
 from typing import Optional, List
+import asyncio
 
 load_dotenv()
 
@@ -50,57 +51,75 @@ class Camera(CameraBase):
 
 
 # Add a background task worker
-def run_schedule():
+async def run_schedule():
     while True:
-        schedule.run_pending()
-        time.sleep(1)
+        try:
+            schedule.run_pending()
+        except Exception as e:
+            logging.error(f"Error in schedule runner: {str(e)}")
+        await asyncio.sleep(1)
 
 
 # Start the fire monitoring schedule
-def start_fire_monitoring():
-    # Schedule fire monitoring every 5 minutes
-    schedule.every(5).minutes.do(process_all_cameras)
+async def start_fire_monitoring():
+    try:
+        # Schedule fire monitoring every 5 minutes
+        schedule.every(5).minutes.do(process_all_cameras)
 
-    # Run immediately on startup
-    process_all_cameras()
+        # Run immediately on startup in the background
+        asyncio.create_task(run_initial_camera_check())
 
-    # Start the background scheduler in a separate thread
-    scheduler_thread = threading.Thread(target=run_schedule, daemon=True)
-    scheduler_thread.start()
+        # Start the background scheduler using FastAPI background tasks
+        asyncio.create_task(run_schedule())
+    except Exception as e:
+        logging.error(f"Error starting fire monitoring: {str(e)}")
+
+
+async def run_initial_camera_check():
+    try:
+        # Add a small delay to ensure the server is fully started
+        await asyncio.sleep(2)
+        process_all_cameras()
+    except Exception as e:
+        logging.error(f"Error in initial camera check: {str(e)}")
 
 
 # Add startup event handler
 @app.on_event("startup")
 async def startup_event():
-    # Initialize DroidCam using IP from .env
-    droidcam_ip = os.getenv("DROIDCAM_IP")
-    if not droidcam_ip:
-        logging.warning("DROIDCAM_IP not found in .env")
-        return
+    try:
+        # Initialize DroidCam using IP from .env
+        droidcam_ip = os.getenv("DROIDCAM_IP")
+        if not droidcam_ip:
+            logging.warning("DROIDCAM_IP not found in .env")
+            return
 
-    # Check if a default camera already exists for this IP
-    default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
+        # Check if a default camera already exists for this IP
+        default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
 
-    if default_camera:
-        camera_id = default_camera["_id"]
-    else:
-        # Create a default camera entry
-        result = user_cctv.insert_one(
-            {
-                "name": "Default DroidCam",
-                "ip_address": droidcam_ip,
-                "user_id": "system",  # Use a system identifier for the default camera
-                "fire_detected": False,
-                "created_at": datetime.utcnow(),
-            }
-        )
-        camera_id = result.inserted_id
+        if default_camera:
+            camera_id = default_camera["_id"]
+        else:
+            # Create a default camera entry
+            result = user_cctv.insert_one(
+                {
+                    "name": "Default DroidCam",
+                    "ip_address": droidcam_ip,
+                    "user_id": "system",  # Use a system identifier for the default camera
+                    "fire_detected": False,
+                    "created_at": datetime.utcnow(),
+                }
+            )
+            camera_id = result.inserted_id
 
-    droidcam_url = f"http://{droidcam_ip}:4747/video"
-    if not initialize_droidcam(droidcam_url, camera_id):
-        logging.error("Failed to initialize DroidCam")
-    # Start the fire monitoring service
-    # start_fire_monitoring()
+        droidcam_url = f"http://{droidcam_ip}:4747/video"
+        if not initialize_droidcam(droidcam_url, camera_id):
+            logging.error("Failed to initialize DroidCam")
+        
+        # Start the fire monitoring service in the background
+        asyncio.create_task(start_fire_monitoring())
+    except Exception as e:
+        logging.error(f"Error in startup event: {str(e)}")
 
 
 @app.on_event("shutdown")

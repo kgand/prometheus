@@ -5,6 +5,7 @@ from video_processing import process_base64_image
 from nps import get_base64_of_webcam_image
 from datetime import datetime
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,7 @@ def process_all_cameras():
     """Process all cameras and update fire detection results in database."""
     try:
         logger.info("Starting camera processing cycle")
-        cursor = parkcams.find({})
-        all_cameras = list(cursor)
+        all_cameras = list(parkcams.find({}))
         logger.info(f"Found {len(all_cameras)} cameras")
         
         if not all_cameras:
@@ -95,12 +95,12 @@ def process_all_cameras():
                                 'error': None
                             }
                             
-                            if update_camera_status(camera_id, status_data):
-                                logger.info(
-                                    f"Updated camera {camera_title}: "
-                                    f"Fire {'detected' if detection_result['class'] == 'Fire' else 'not detected'} "
-                                    f"(Confidence: {detection_result['confidence']:.2%})"
-                                )
+                            update_camera_status(camera_id, status_data)
+                            logger.info(
+                                f"Updated camera {camera_title}: "
+                                f"Fire {'detected' if detection_result['class'] == 'Fire' else 'not detected'} "
+                                f"(Confidence: {detection_result['confidence']:.2%})"
+                            )
                         else:
                             # Update with processing error
                             error_status = {
@@ -139,4 +139,4 @@ def process_all_cameras():
                 continue
                 
     except Exception as e:
-        logger.error(f"Error in process_all_cameras: {str(e)}") 
+        logger.error(f"Error in process_all_cameras: {str(e)}")

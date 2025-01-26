@@ -174,11 +174,8 @@ Follow these steps to set up the Prometheus locally:
 
 ### Example Screenshots
 
-![Dashboard Overview](assets/images/dashboard_overview.png)
+![Dashboard Overview](assets/images/dashboard.png)
 *Dashboard displaying real-time detection results.*
-
-![Detection Alerts](assets/images/detection_alerts.png)
-*Alerts triggered by the detection system.*
 
 ## Challenges Faced
 
@@ -281,4 +278,3 @@ Throughout the hackathon, our team stretched our capabilities and ventured into 
   - [Cloudflare Workers AI](https://developers.cloudflare.com/workers/)
   - [HashiCorp Terraform](https://www.terraform.io/)
 
-```

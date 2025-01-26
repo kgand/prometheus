@@ -43,6 +43,45 @@ def update_camera_status(camera_id, detection_data):
         logger.error(f"Error updating status for camera {camera_id}: {str(e)}")
         return False
     
+def process_all_cameras():
+    """Process all cameras and update fire detection results in database."""
+    try:
+        logger.info("Starting camera processing cycle")
+        cursor = parkcams.find({})
+        all_cameras = list(cursor)
+        
+        for camera in all_cameras:
+            camera_id = camera.get('id')
+            camera_title = camera.get('title', 'Unknown')
+            
+            try:
+                current_time = datetime.utcnow().isoformat()
+                webcam_data = get_base64_of_webcam_image(camera['url'])
+                
+                if webcam_data and 'image' in webcam_data:
+                    # Store the image
+                    image_data = {
+                        'timestamp': current_time,
+                        'image': webcam_data['image']
+                    }
+                    update_camera_image(camera_id, image_data)
+                    
+                    # Process for fire detection
+                    detection_result = process_base64_image(webcam_data['image'])
+                    
+                    if detection_result:
+                        status_data = {
+                            'timestamp': current_time,
+                            'fire_detected': detection_result['class'] == 'Fire',
+                            'confidence': float(detection_result['confidence'])
+                        }
+                        update_camera_status(camera_id, status_data)
+                        
+            except Exception as e:
+                logger.error(f"Error processing camera {camera_title}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error in process_all_cameras: {str(e)}")
+        
 def main():
     print("Starting fire monitoring service...")
     

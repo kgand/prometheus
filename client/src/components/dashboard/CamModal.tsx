@@ -3,8 +3,13 @@ import React from "react";
 import { FaXmark } from "react-icons/fa6";
 import { FaSpinner } from "react-icons/fa";
 import useImgById from "../../hooks/useImgById";
+
+import { FaSpinner } from "react-icons/fa";
+import { motion } from "framer-motion";
+
 import { useWeather } from "../../hooks/useWeather";
 import { WiHumidity, WiStrongWind, WiThermometer } from "react-icons/wi";
+
 
 interface CamData {
   camera_id: string;
@@ -27,17 +32,37 @@ const CamModal: React.FC<CamModalProps> = ({
     selectedCam?.longitude || 0
   );
 
+  if (loading) {
+    return (
+      <div
+        className="modal-bg fixed inset-0 z-20 flex items-center justify-center"
+        onClick={() => setShowCamModal(false)}
+      >
+        <span className="text-3xl animate-spin duration-200 text-white">
+          <FaSpinner />
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="modal-bg absolute inset-0 z-20 flex items-center justify-center"
+      className="modal-bg fixed inset-0 z-20 flex items-center justify-center"
       onClick={() => setShowCamModal(false)}
     >
-      <div
+      <motion.div
         className="relative w-[500px] rounded-xl border border-gray-300 bg-white shadow-xl max-h-[600px] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, y: -50 }} // Initial state: invisible and shifted upward
+        animate={{ opacity: 1, y: 0 }} // Visible and positioned at the center
+        exit={{ opacity: 0, y: -50 }} // Exit state: invisible and shifted upward
+        transition={{ duration: 0.3, ease: "easeInOut" }} // Smooth transition
       >
-        <div className="absolute top-4 right-4 z-30 cursor-pointer p-2 text-xl text-black border border-gray-300 shadow-xl rounded-full bg-white" onClick={() => setShowCamModal(false)}>
-          <FaXmark className=""  />
+        <div
+          className="absolute top-4 right-4 z-30 cursor-pointer p-2 text-xl text-black border border-gray-300 shadow-xl rounded-full bg-white"
+          onClick={() => setShowCamModal(false)}
+        >
+          <FaXmark className="" />
         </div>
 
         <div className="px-4 py-4">
@@ -120,7 +145,7 @@ const CamModal: React.FC<CamModalProps> = ({
             </p>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

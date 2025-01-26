@@ -56,7 +56,7 @@ Our system is divided into two main components: the **Client** and the **Server*
 
 The client side is responsible for capturing live video feeds and displaying real-time detection results to the user.
 
-- **Technologies Used**: React.js, WebSocket
+- **Technologies Used**: React.js, TypeScript, Vite
 - **Features**:
   - Live video stream display
   - Real-time detection alerts
@@ -66,7 +66,7 @@ The client side is responsible for capturing live video feeds and displaying rea
 
 The server processes the video feeds using machine learning models to detect fire and smoke.
 
-- **Technologies Used**: Python, Flask, TensorFlow, OpenCV
+- **Technologies Used**: Python, FastAPI, MongoDB, TensorFlow, OpenCV
 - **Features**:
   - Model inference for fire and smoke detection
   - API endpoints for client-server communication
@@ -112,8 +112,8 @@ Follow these steps to set up the Prometheus locally:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/SwampHacksX/Fire-Smoke-Detection-System.git
-   cd Fire-Smoke-Detection-System
+   git clone https://github.com/kgand/prometheus
+   cd prometheus
    ```
 
 2. **Set Up the Python Environment**
@@ -139,38 +139,19 @@ Follow these steps to set up the Prometheus locally:
 
 6. **Run the Server**
    ```bash
-   python src/server.py
+   cd server
+   python main.py
    ```
 
 7. **Run the Client**
    Open a new terminal window, navigate to the `client` directory, and start the client.
    ```bash
    cd client
-   npm start
+   npm run dev
    ```
 
 8. **Access the Dashboard**
    Open your browser and navigate to `http://localhost:3000` to interact with the dashboard.
-
-## Usage
-
-1. **Start the Server**
-   Ensure the server is running to handle detection processes.
-   ```bash
-   python src/server.py
-   ```
-
-2. **Start the Client**
-   Navigate to the `client` directory and start the frontend application.
-   ```bash
-   cd client
-   npm start
-   ```
-
-3. **Monitor Detection**
-   - **Live Stream**: View real-time video feeds with detection overlays.
-   - **Alerts**: Receive instant notifications when fire or smoke is detected.
-   - **Logs**: Access detailed logs for analysis and review.
 
 ### Example Screenshots
 

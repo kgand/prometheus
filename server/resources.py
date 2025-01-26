@@ -70,3 +70,32 @@ def get_emergency_places(lat, lon, radius):
                 places_data[place_type_key].append(place_info)
 
     return places_data
+
+def get_city_from_coordinates(lat, lon):
+    """Get city name from coordinates using Google Maps Geocoding API"""
+    endpoint = "https://maps.googleapis.com/maps/api/geocode/json"
+    
+    params = {
+        "latlng": f"{lat},{lon}",
+        "key": GOOGLE_MAPS_API_KEY,
+    }
+    
+    try:
+        response = httpx.get(endpoint, params=params)
+        if response.status_code == 200:
+            results = response.json().get("results", [])
+            if results:
+                # Loop through address components to find the locality (city)
+                for component in results[0].get("address_components", []):
+                    if "locality" in component.get("types", []):
+                        return component.get("long_name")
+                
+                # If no locality found, try to get the administrative area
+                for component in results[0].get("address_components", []):
+                    if "administrative_area_level_1" in component.get("types", []):
+                        return component.get("long_name")
+                        
+        return "Unknown Location"
+    except Exception as e:
+        print(f"Error getting city from coordinates: {e}")
+        return "Unknown Location"

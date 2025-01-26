@@ -19,6 +19,8 @@ export default function DashboardSidebar() {
 
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
 
+  // Add user profile section if authenticated
+  const userEmail = user?.email;
 
   return (
     <>
@@ -62,15 +64,26 @@ export default function DashboardSidebar() {
                 >
                   <FaMapMarked /> Map View
                 </Link>
-                <li className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200">
+                <Link
+                  to="/dashboard/parkcams"
+                  className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
+                >
                   <MdPark /> Park Cams
-                </li>
-                <li className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200">
-                  <FaCamera /> Your Cams
-                </li>
-                <li className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200">
+                </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/dashboard/yourcams"
+                    className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
+                  >
+                    <FaCamera /> Your Cams
+                  </Link>
+                )}
+                <Link
+                  to="/dashboard/alerts"
+                  className="flex cursor-pointer items-center gap-2 overflow-x-hidden rounded-md px-3 py-1 whitespace-nowrap transition-all hover:bg-gray-200"
+                >
                   <PiSirenFill /> Alerts
-                </li>
+                </Link>
               </ul>
             </div>
             <div className="border-b border-gray-300 px-3 pt-4 pb-3">

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Marker } from "react-simple-maps";
 import { useFireStatus } from "../../services/websocket/client";
 
-const Pin = ({ pin }) => {
+const Pin = ({ pin, setSelectedCam, setShowCamModal }) => {
   const [isHovered, setIsHovered] = useState(false);
   const fireStatuses = useFireStatus();
   const fireStatus = fireStatuses[pin._id];
@@ -21,11 +21,18 @@ const Pin = ({ pin }) => {
     return "#6E1423";
   };
 
+  const handleClick = () => {
+    setShowCamModal(true)
+    setSelectedCam(pin)
+  }
+
   return (
+   <>
     <Marker
       coordinates={pin.coordinates}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
       className="relative"
     >
       <circle r={4} fill={getPinColor()} className="cursor-pointer" />
@@ -36,6 +43,7 @@ const Pin = ({ pin }) => {
         </text>
       )}
     </Marker>
+   </>
   );
 };
 

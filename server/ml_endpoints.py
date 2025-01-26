@@ -50,38 +50,22 @@ class Camera(CameraBase):
         from_attributes = True
 
 
-# Add a background task worker
-async def run_schedule():
-    while True:
-        try:
-            schedule.run_pending()
-        except Exception as e:
-            logging.error(f"Error in schedule runner: {str(e)}")
-        await asyncio.sleep(1)
-
-
 # Start the fire monitoring schedule
-async def start_fire_monitoring():
-    try:
-        # Schedule fire monitoring every 5 minutes
-        schedule.every(5).minutes.do(process_all_cameras)
+def start_fire_monitoring():
+    # Schedule fire monitoring every 5 minutes
+    schedule.every(5).minutes.do(process_all_cameras)
 
-        # Run immediately on startup in the background
-        asyncio.create_task(run_initial_camera_check())
+    # Run immediately on startup
+    process_all_cameras()
 
-        # Start the background scheduler using FastAPI background tasks
-        asyncio.create_task(run_schedule())
-    except Exception as e:
-        logging.error(f"Error starting fire monitoring: {str(e)}")
+    # Start the background scheduler in a separate thread
+    def run_scheduler():
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
 
-
-async def run_initial_camera_check():
-    try:
-        # Add a small delay to ensure the server is fully started
-        await asyncio.sleep(2)
-        process_all_cameras()
-    except Exception as e:
-        logging.error(f"Error in initial camera check: {str(e)}")
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
 
 
 # Add startup event handler
@@ -94,7 +78,7 @@ async def startup_event():
             logging.warning("DROIDCAM_IP not found in .env")
             return
 
-        # Check if a default camera already exists for this IP
+        # Check if a default camera already exists for this IP - using synchronous find_one
         default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
 
         if default_camera:
@@ -117,9 +101,17 @@ async def startup_event():
             logging.error("Failed to initialize DroidCam")
         
         # Start the fire monitoring service in the background
-        asyncio.create_task(start_fire_monitoring())
+        # Ensure we're in the same event loop as FastAPI
+        asyncio.create_task(start_monitoring_wrapper())
     except Exception as e:
-        logging.error(f"Error in startup event: {str(e)}")
+        logging.error(f"Error in startup: {e}")
+
+async def start_monitoring_wrapper():
+    """Wrapper to start fire monitoring in FastAPI's event loop."""
+    try:
+        start_fire_monitoring()
+    except Exception as e:
+        logging.error(f"Error starting fire monitoring: {e}")
 
 
 @app.on_event("shutdown")
@@ -191,9 +183,7 @@ async def create_camera(camera: CameraCreate):
         if not initialize_droidcam(camera_url, result.inserted_id):
             # If initialization fails, delete the camera document
             user_cctv.delete_one({"_id": result.inserted_id})
-            raise HTTPException(
-                status_code=400, detail="Failed to initialize camera feed"
-            )
+            raise HTTPException(status_code=400, detail="Failed to initialize camera feed")
 
         return Camera(**camera_dict)
     except Exception as e:

@@ -1,5 +1,4 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { MdFireTruck } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 export default function Nav() {
@@ -9,8 +8,9 @@ export default function Nav() {
     <div className="fixed top-4 right-0 left-0 z-20 px-10">
       <div className="mx-auto flex max-w-6xl items-center justify-between rounded-xl border border-[#dadada] bg-white px-6 py-3 shadow-md">
         <div className="flex items-end gap-6">
-          <div className="flex items-center gap-2.5 text-2xl font-medium">
-            <MdFireTruck className="text-red-800" /> <span>Prometheus</span>
+          <div className="flex items-center gap-0.5 text-2xl font-medium">
+            <img src="/prometheus.png" alt="Prometheus Logo" className="w-10 h-10 object-contain" />
+            <span className="text-gray-800">Prometheus</span>
           </div>
           <ul className="flex gap-4 pb-0.5 items-center">
             <li>

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { FaCamera, FaGithub, FaMapMarked, FaUser } from "react-icons/fa";
 import { FiChevronsLeft } from "react-icons/fi";
-import { MdFireTruck, MdLogin, MdPark } from "react-icons/md";
+import { MdLogin, MdPark } from "react-icons/md";
 import { PiSirenFill } from "react-icons/pi";
 import { SiGoogledocs } from "react-icons/si";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
@@ -14,8 +14,8 @@ export const LandingImg: React.FC = ({}) => {
         <div className="py-6 text-xs">
           <div className="border-b border-gray-300 px-6 pb-3">
             <p className="flex items-center overflow-x-hidden text-lg font-semibold whitespace-nowrap">
-              <MdFireTruck className="text-red-800" />
-              <span className="pl-2.5">Prometheus</span>
+              <img src="/prometheus.png" alt="Prometheus Logo" className="w-8 h-8 object-contain" />
+              <span className="pl-0.5 text-gray-800">Prometheus</span>
             </p>
             <div className="flex items-end justify-between pt-6">
               <p className="text-sm font-medium">Dashboard</p>

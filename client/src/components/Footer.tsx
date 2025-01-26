@@ -1,5 +1,4 @@
 import { FaGithub } from "react-icons/fa";
-import { MdFireTruck } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -7,7 +6,10 @@ export default function Footer() {
     <footer className='border-t border-[#f5f5f5] py-20 bg-white relative z-10'>
          <div className="flex flex-col-reverse items-center lg:justify-center lg:flex-row">
         <div className="flex flex-col items-center  border-r-none border-[#f5f5f5] mt-12 lg:max-w-[320px] lg:border-r lg:mt-0 lg:items-start lg:pr-16">
-          <p className="text-xl flex font-medium items-center gap-2"><span className="text-red-800"><MdFireTruck/></span>Prometheus</p>
+          <p className="text-xl flex font-medium items-center gap-0.5">
+            <img src="/prometheus.png" alt="Prometheus Logo" className="w-12 h-12 object-contain" />
+            <span className="text-gray-800">Prometheus</span>
+          </p>
           <a href="https://github.com/kgand/prometheus" target="_blank" className="flex items-center  mt-4 text-lg">
             <span className="mr-2">
               <FaGithub />

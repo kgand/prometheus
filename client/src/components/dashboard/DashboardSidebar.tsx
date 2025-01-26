@@ -8,7 +8,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { FiChevronsLeft, FiChevronsRight } from "react-icons/fi";
-import { MdFireTruck, MdLogin, MdPark } from "react-icons/md";
+import { MdLogin, MdPark } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { PiSirenFill } from "react-icons/pi";
 import { SiGoogledocs } from "react-icons/si";
@@ -34,8 +34,8 @@ export default function DashboardSidebar() {
           <div className="py-6 text-sm">
             <div className="border-b border-gray-300 px-6 pb-3">
               <p className="flex items-center overflow-x-hidden text-xl font-semibold whitespace-nowrap">
-                <MdFireTruck className="text-red-800" />{" "}
-                <span className="pl-2.5">Prometheus</span>
+                <img src="/prometheus.png" alt="Prometheus Logo" className="w-10 h-10 object-contain" />
+                <span className="pl-0.5 text-gray-800">Prometheus</span>
               </p>
               <div className="flex items-center justify-between pt-6">
                 <p className="font-medium">Dashboard</p>

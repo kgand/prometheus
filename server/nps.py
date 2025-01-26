@@ -65,10 +65,8 @@ def get_base64_of_webcam_image(url: str):
         raise Exception(f"couldn't retrieve the image: {img_response.status_code}")
 
     img_base64 = image_bytes_to_base64(img_response.content)
-    
-    return {
-        'image': img_base64
-    }
+
+    return {"image": img_base64}
 
 
 nps = NpsClient(api_key=NPS_API_KEY)

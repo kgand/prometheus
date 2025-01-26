@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { Marker } from "react-simple-maps";
+import { motion } from "framer-motion";
 
 const Wildfire = ({
   fire,
@@ -44,9 +45,17 @@ const Wildfire = ({
         opacity={opacity}
       />
       {isHovered && (
-        <text x={5} y={-10} className="txt">
+        <motion.text
+          x={5}
+          y={-10}
+          className="txt"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           {fire.properties.title}
-        </text>
+        </motion.text>
       )}
     </Marker>
   );

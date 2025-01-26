@@ -20,7 +20,6 @@ const useWebSocketStore = create<WebSocketStore>((set: any) => ({
   fireStatuses: {},
   setFireStatus: (status: FireStatus) =>
     set((state: WebSocketStore) => {
-      console.log('Setting fire status:', status);
       return {
         fireStatuses: {
           ...state.fireStatuses,
@@ -59,13 +58,13 @@ class WebSocketClient {
       };
 
       this.ws.onmessage = (event: MessageEvent) => {
-        console.log('WebSocket message received:', event.data);
+        
         try {
           const message = JSON.parse(event.data);
-          console.log('Parsed WebSocket message:', message);
+          
           
           if (message.type === 'fire_update' && message.data) {
-            console.log('Received fire status update:', message.data);
+           
             useWebSocketStore.getState().setFireStatus({
               cameraId: message.data.camera_id,
               fireDetected: message.data.fire_detected,
@@ -80,7 +79,7 @@ class WebSocketClient {
       };
 
       this.ws.onclose = (event) => {
-        console.log('WebSocket Disconnected. Code:', event.code, 'Reason:', event.reason);
+        
         this.attemptReconnect();
       };
 

@@ -1,4 +1,4 @@
-import {  useState } from "react";
+import {  useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FaCamera,
@@ -19,6 +19,7 @@ export default function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
+
 
   // Add user profile section if authenticated
   const userEmail = user?.email;

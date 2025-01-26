@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 import os
 import socket
+from wildfires import get_wildfire_incidents
 from dotenv import load_dotenv
 from fire_monitor import process_all_cameras
 from droidcam import initialize_droidcam, cleanup, generate_frames
@@ -25,17 +26,21 @@ app = FastAPI()
 parkcams = db.parkcams
 user_cctv = db.user_cctv
 
+
 # Pydantic models
 class CameraBase(BaseModel):
     name: str
     ip_address: str
     location: Optional[str] = None
-    
+
+
 class CameraCreate(CameraBase):
     user_id: str
 
+
 class CameraUpdate(CameraBase):
     pass
+
 
 class Camera(CameraBase):
     id: str
@@ -47,6 +52,7 @@ class Camera(CameraBase):
     class Config:
         from_attributes = True
 
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -56,49 +62,54 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Add a background task worker
 def run_schedule():
     while True:
         schedule.run_pending()
         time.sleep(1)
 
+
 # Start the fire monitoring schedule
 def start_fire_monitoring():
     # Schedule fire monitoring every 5 minutes
     schedule.every(5).minutes.do(process_all_cameras)
-    
+
     # Run immediately on startup
     process_all_cameras()
-    
+
     # Start the background scheduler in a separate thread
     scheduler_thread = threading.Thread(target=run_schedule, daemon=True)
     scheduler_thread.start()
+
 
 # Add startup event handler
 @app.on_event("startup")
 async def startup_event():
     # Initialize DroidCam using IP from .env
-    droidcam_ip = os.getenv('DROIDCAM_IP')
+    droidcam_ip = os.getenv("DROIDCAM_IP")
     if not droidcam_ip:
         logging.warning("DROIDCAM_IP not found in .env")
         return
-        
+
     # Check if a default camera already exists for this IP
     default_camera = user_cctv.find_one({"ip_address": droidcam_ip})
-    
+
     if default_camera:
         camera_id = default_camera["_id"]
     else:
         # Create a default camera entry
-        result = user_cctv.insert_one({
-            "name": "Default DroidCam",
-            "ip_address": droidcam_ip,
-            "user_id": "system",  # Use a system identifier for the default camera
-            "fire_detected": False,
-            "created_at": datetime.utcnow()
-        })
+        result = user_cctv.insert_one(
+            {
+                "name": "Default DroidCam",
+                "ip_address": droidcam_ip,
+                "user_id": "system",  # Use a system identifier for the default camera
+                "fire_detected": False,
+                "created_at": datetime.utcnow(),
+            }
+        )
         camera_id = result.inserted_id
-        
+
     droidcam_url = f"http://{droidcam_ip}:4747/video"
     if not initialize_droidcam(droidcam_url, camera_id):
         logging.error("Failed to initialize DroidCam")
@@ -109,6 +120,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     cleanup()
+
 
 def parse_document(doc):
     if "_id" in doc:
@@ -148,6 +160,19 @@ def read_weather(lat: float, lon: float):
         raise HTTPException(status_code=500, detail="failed to retrieve weather")
 
 
+@app.get("/wildfires")
+def read_wildfires():
+    try:
+        print("Finding wildfires")
+        wildfires = get_wildfire_incidents()
+        print("found wildfires for")
+
+        return wildfires
+    except Exception as e:
+        print(f"error: {e}")
+        raise HTTPException(status_code=500, detail="failed to retrieve wildfires")
+
+
 @app.get("/droidcam", response_class=HTMLResponse)
 async def droidcam_page():
     """Serve the DroidCam video feed page."""
@@ -171,24 +196,28 @@ async def droidcam_page():
     </html>
     """
 
+
 @app.get("/droidcam/feed")
 async def video_feed():
     """Stream the DroidCam video feed."""
     return StreamingResponse(
-        generate_frames(),
-        media_type="multipart/x-mixed-replace; boundary=frame"
+        generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame"
     )
+
 
 def find_available_port(start_port, max_attempts=10):
     """Find an available port starting from start_port."""
     for port in range(start_port, start_port + max_attempts):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('0.0.0.0', port))
+                s.bind(("0.0.0.0", port))
                 return port
         except OSError:
             continue
-    raise RuntimeError(f"No available ports found between {start_port} and {start_port + max_attempts - 1}")
+    raise RuntimeError(
+        f"No available ports found between {start_port} and {start_port + max_attempts - 1}"
+    )
+
 
 # Camera management endpoints
 @app.post("/api/cameras", response_model=Camera)
@@ -199,20 +228,23 @@ async def create_camera(camera: CameraCreate):
         camera_dict = camera.dict()
         camera_dict["fire_detected"] = False
         camera_dict["created_at"] = datetime.utcnow()
-        
+
         result = user_cctv.insert_one(camera_dict)
         camera_dict["id"] = str(result.inserted_id)
-        
+
         # Initialize camera feed
         camera_url = f"http://{camera.ip_address}:4747/video"
         if not initialize_droidcam(camera_url, result.inserted_id):
             # If initialization fails, delete the camera document
             user_cctv.delete_one({"_id": result.inserted_id})
-            raise HTTPException(status_code=400, detail="Failed to initialize camera feed")
-        
+            raise HTTPException(
+                status_code=400, detail="Failed to initialize camera feed"
+            )
+
         return Camera(**camera_dict)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/cameras/{user_id}", response_model=List[Camera])
 async def get_user_cameras(user_id: str):
@@ -227,24 +259,25 @@ async def get_user_cameras(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.put("/api/cameras/{camera_id}", response_model=Camera)
 async def update_camera(camera_id: str, camera: CameraUpdate):
     """Update camera details."""
     try:
         update_result = user_cctv.update_one(
-            {"_id": ObjectId(camera_id)},
-            {"$set": camera.dict(exclude_unset=True)}
+            {"_id": ObjectId(camera_id)}, {"$set": camera.dict(exclude_unset=True)}
         )
-        
+
         if update_result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Camera not found")
-            
+
         # Get updated camera
         doc = user_cctv.find_one({"_id": ObjectId(camera_id)})
         doc["id"] = str(doc.pop("_id"))
         return Camera(**doc)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.delete("/api/cameras/{camera_id}")
 async def delete_camera(camera_id: str):
@@ -257,6 +290,7 @@ async def delete_camera(camera_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/api/cameras/{camera_id}/status")
 async def get_camera_status(camera_id: str):
     """Get the current status of a camera."""
@@ -264,15 +298,16 @@ async def get_camera_status(camera_id: str):
         doc = user_cctv.find_one({"_id": ObjectId(camera_id)})
         if not doc:
             raise HTTPException(status_code=404, detail="Camera not found")
-            
+
         return {
             "id": str(doc["_id"]),
             "fire_detected": doc.get("fire_detected", False),
             "last_checked": doc.get("last_checked"),
-            "last_alert": doc.get("last_alert")
+            "last_alert": doc.get("last_alert"),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     try:

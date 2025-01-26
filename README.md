@@ -56,7 +56,7 @@ Our system is divided into two main components: the **Client** and the **Server*
 
 The client side is responsible for capturing live video feeds and displaying real-time detection results to the user.
 
-- **Technologies Used**: React.js, TypeScript, Vite
+- **Technologies Used**: React.js, TypeScript, Vite, Cloudflare Pages
 - **Features**:
   - Live video stream display
   - Real-time detection alerts
@@ -246,16 +246,16 @@ Throughout the hackathon, our team stretched our capabilities and ventured into 
 
 - **Team Members**:
   - [Kovidh Gandreti](https://github.com/kgand) - *Machine Learning & Backend Engineer*
-  - [Cole Morgan](https://github.com/colemmorgan) - *Frontend Engineer*
   - [Savio Xavier](https://github.com/skyascii) - *Backend Developer*
+  - [Cole Morgan](https://github.com/colemmorgan) - *Frontend Developer*
 
 - **Resources**:
   - [TensorFlow Documentation](https://www.tensorflow.org/)
+  - [PyTorch Documentation](https://pytorch.org/)
   - [VGG16 Architecture](https://keras.io/api/applications/vgg/#vgg16-function)
   - [InceptionV3 Architecture](https://keras.io/api/applications/inceptionv3/#inceptionv3-function)
-  - [Shields.io for Badges](https://shields.io/)
-  - [Choose a License](https://choosealicense.com/)
   - [Auth0 Documentation](https://auth0.com/docs/)
   - [Cloudflare Workers AI](https://developers.cloudflare.com/workers/)
+  - [Cloudflare Pages](https://pages.cloudflare.com/)
   - [HashiCorp Terraform](https://www.terraform.io/)
 

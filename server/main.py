@@ -1,5 +1,5 @@
 from connect import db
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from owm import get_weather
@@ -18,6 +18,7 @@ from droidcam import initialize_droidcam, cleanup, generate_frames
 from pydantic import BaseModel
 from bson import ObjectId
 from typing import Optional, List
+from ws_manager import manager
 
 # Load environment variables
 load_dotenv()
@@ -197,12 +198,75 @@ async def droidcam_page():
     """
 
 
-@app.get("/droidcam/feed")
-async def video_feed():
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except:
+        manager.disconnect(websocket)
+
+
+@app.get("/droidcam/feed/{camera_id}")
+async def video_feed(camera_id: str):
     """Stream the DroidCam video feed."""
     return StreamingResponse(
-        generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame"
+        generate_frames(camera_id), 
+        media_type="multipart/x-mixed-replace; boundary=frame"
     )
+
+
+@app.get("/api/cameras/status")
+async def get_all_camera_status():
+    """Get status of all cameras."""
+    try:
+        # Get park cameras
+        park_cameras = list(parkcams.find(
+            {"fire_detected": True},
+            {"id": 1, "title": 1, "fire_detected": 1, "confidence": 1, "latitude": 1, "longitude": 1}
+        ))
+        
+        # Get user cameras
+        user_cameras = list(user_cctv.find(
+            {"fire_detected": True},
+            {"_id": 1, "name": 1, "fire_detected": 1, "confidence": 1, "latitude": 1, "longitude": 1}
+        ))
+        
+        # Format response
+        cameras = []
+        
+        # Format park cameras
+        for cam in park_cameras:
+            cameras.append({
+                "id": cam["id"],
+                "name": cam.get("title", "Unknown"),
+                "type": "park",
+                "fire_detected": cam.get("fire_detected", False),
+                "confidence": cam.get("confidence", 0.0),
+                "location": {
+                    "lat": cam.get("latitude", 0),
+                    "lng": cam.get("longitude", 0)
+                }
+            })
+            
+        # Format user cameras
+        for cam in user_cameras:
+            cameras.append({
+                "id": str(cam["_id"]),
+                "name": cam.get("name", "Unknown"),
+                "type": "user",
+                "fire_detected": cam.get("fire_detected", False),
+                "confidence": cam.get("confidence", 0.0),
+                "location": {
+                    "lat": cam.get("latitude", 0),
+                    "lng": cam.get("longitude", 0)
+                }
+            })
+            
+        return cameras
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def find_available_port(start_port, max_attempts=10):

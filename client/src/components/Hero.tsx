@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { LandingImg } from "./LandingImg";
 
 export default function Hero() {
   return (
@@ -28,11 +29,23 @@ export default function Hero() {
             </a>
           </div>
           <div className="relative">
-            <div className="grad relative z-10 mt-16 h-[420px] w-[800px] rounded-xl"></div>
-            <img src="/blob1.svg" alt="" className="absolute z-0 w-[320px] top-5 -right-12 blob-blur" />
+            <div className="bg-opacity-10 relative z-10 mt-20 h-[500px] w-[800px] overflow-hidden rounded-xl bg-white backdrop-blur-md">
+              <div className="grad absolute inset-0 z-20"></div>
+              <LandingImg />
+            </div>
+            <img
+              src="/blob1.svg"
+              alt=""
+              className="blob-blur absolute top-5 -right-12 z-0 w-[320px]"
+            />
           </div>
         </div>
       </div>
+      <img
+        src="/blob2.svg"
+        alt=""
+        className="blob-blur absolute top-40 left-40 z-[1] w-[400px]"
+      />
       <Circle diameter={1150} fromTop={45} />
       <Circle diameter={900} fromTop={45} />
       <Circle diameter={1450} fromTop={45} />
@@ -61,7 +74,20 @@ const Circle: React.FC<CircleProps> = ({ diameter, fromTop }) => {
       }}
       className="absolute z-0"
     >
-      <circle cx="300" cy="300" r="299.5" stroke="#f6f6f6" />
+      <circle cx="300" cy="300" r="299.5" stroke="url(#paint0_linear_3_2)" />
+      <defs>
+        <linearGradient
+          id="paint0_linear_3_2"
+          x1="300"
+          y1="281.5"
+          x2="300"
+          y2="600"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stop-color="#F6F6F6" />
+          <stop offset="0.853313" stop-color="#F6F6F6" stop-opacity="0" />
+        </linearGradient>
+      </defs>
     </svg>
   );
 };
